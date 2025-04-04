@@ -35,6 +35,7 @@ const createRackQuery = `
     Service TEXT NOT NULL,
     Height INTEGER NOT NULL,
     Maxremain INTEGER NOT NULL,
+    IP TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (FabID) REFERENCES Fabs(ID),
     FOREIGN KEY (RoomID) REFERENCES Rooms(ID)
@@ -51,6 +52,7 @@ const createMachinesQuery = `
     start INTEGER NOT NULL,
     end INTEGER NOT NULL,
     Unit INTEGER NOT NULL,
+    IP TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (FabID) REFERENCES Fabs(ID),
     FOREIGN KEY (RoomID) REFERENCES Rooms(ID),
