@@ -74,18 +74,18 @@ const createMachineTableText = `
   CREATE UNIQUE INDEX IF NOT EXISTS machines_name_index ON machines USING btree (name);
 `;
 export const databaseConnection = async () => {
-  try {
-    await pool.connect();
-    await pool.query(createFabTableText);
-    await pool.query(createRoomTableText);
-    await pool.query(createRackTableText);
-    await pool.query(createMachineTableText);
-    logger.info({
-      message: `msg=Database connected`,
-    });
-  } catch (error) {
-    logger.error({
-      message: `msg=Database connection error error=${error}`,
-    });
-  }
+  // try {
+  //   await pool.connect();
+  //   await pool.query(createFabTableText);
+  //   await pool.query(createRoomTableText);
+  //   await pool.query(createRackTableText);
+  //   await pool.query(createMachineTableText);
+  //   logger.info({
+  //     message: `msg=Database connected`,
+  //   });
+  // } catch (error) {
+  //   logger.error({
+  //     message: `msg=Database connection error error=${error}`,
+  //   });
+  // }
 };
