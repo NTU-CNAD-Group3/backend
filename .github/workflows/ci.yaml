@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/lint-ci.yaml@main
+    secrets: inherit
+
+  sonarqube:
+    uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/sonarqube-ci.yaml@main
+    secrets: inherit
