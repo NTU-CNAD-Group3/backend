@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { pool, createFabTableText } from '../models/db.js';
+import { pool, databaseConnection } from '../models/db.js';
 import adminController from '../controllers/adminController.js';
 import adminService from '../models/adminService.js';
 // import logger from '@/utils/logger.js';
@@ -7,7 +7,7 @@ import adminService from '../models/adminService.js';
 describe('Admin Fab Service', () => {
   beforeAll(async () => {
     // await pool.connect();
-    await pool.query(createFabTableText);
+    await databaseConnection();
   });
   afterAll(async () => {
     await pool.query('DROP TABLE IF EXISTS fabs CASCADE;'); // 清除資料

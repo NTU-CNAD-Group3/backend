@@ -14,7 +14,7 @@ pool.on('error', () => {
   process.exit(-1);
 });
 
-export const createFabTableText = `
+const createFabTableText = `
   CREATE TABLE IF NOT EXISTS fabs (
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL UNIQUE,
@@ -76,7 +76,7 @@ export const createFabTableText = `
 
 export const databaseConnection = async () => {
   try {
-    await pool.connect();
+    // await pool.connect();
     await pool.query(createFabTableText);
     // await pool.query(createRoomTableText);
     // await pool.query(createRackTableText);
@@ -90,4 +90,4 @@ export const databaseConnection = async () => {
     });
   }
 };
-export default { pool, createFabTableText, databaseConnection };
+export default { pool,  databaseConnection };

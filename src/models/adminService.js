@@ -1,9 +1,9 @@
-import db from '../models/db.js';
+import {pool} from '../models/db.js';
 import logger from '../utils/logger.js';
 class AdminServices {
   async getAllFabs() {
     try {
-      const result = await db.query('SELECT * FROM fabs');
+      const result = await pool.query('SELECT * FROM fabs');
       logger.info({
         message: `msg=AllFabs get`,
       });
@@ -17,7 +17,7 @@ class AdminServices {
 
   async getFab(name) {
     try {
-      const result = await db.query('SELECT * FROM fabs WHERE name = $1', [name]);
+      const result = await pool.query('SELECT * FROM fabs WHERE name = $1', [name]);
       logger.info({
         message: `msg=Fab get`,
       });
@@ -31,7 +31,7 @@ class AdminServices {
 
   async createFab(name, roomNum) {
     try {
-      const result = await db.query('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING *', [name, roomNum]);
+      const result = await pool.query('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING *', [name, roomNum]);
       logger.info({
         message: `msg=Fab created name=${name}`,
       });
@@ -45,7 +45,7 @@ class AdminServices {
 
   async updateFab(id, name, roomNum) {
     try {
-      const result = await db.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3 RETURNING *', [name, roomNum, id]);
+      const result = await pool.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3 RETURNING *', [name, roomNum, id]);
       logger.info({
         message: `msg=Fab updated name=${name} roomNum=${roomNum}`,
       });
@@ -59,7 +59,7 @@ class AdminServices {
 
   async deleteFab(name) {
     try {
-      const result = await db.query('DELETE FROM fabs WHERE name = $1 RETURNING *', [name]);
+      const result = await pool.query('DELETE FROM fabs WHERE name = $1 RETURNING *', [name]);
       logger.info({
         message: `msg=Fab deleted name=${name}`,
       });
