@@ -10,7 +10,7 @@ describe('Admin Fab Service', () => {
         await pool.query(createFabTableText);
     });
     afterAll(async () => {
-        await pool.query('DROP TABLE IF EXISTS machines, racks, rooms, fabs CASCADE;'); // 清除資料
+        await pool.query('DROP TABLE IF EXISTS fabs CASCADE;'); // 清除資料
         await pool.end();
     });
     beforeEach(() => {
