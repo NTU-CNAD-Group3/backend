@@ -1,5 +1,5 @@
-import {pool} from '../models/db.js';
-import logger from '../utils/logger.js';
+import { pool } from '#src/models/db.js';
+import logger from '#src/utils/logger.js';
 class AdminServices {
   async getAllFabs() {
     try {

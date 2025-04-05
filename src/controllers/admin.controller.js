@@ -1,4 +1,5 @@
-import adminService from '../services/admin.service.js';
+import adminService from '#src/services/admin.service.js';
+
 async function getAllFabs(req, res) {
   try {
     const fabs = await adminService.getAllFabs();
@@ -7,6 +8,7 @@ async function getAllFabs(req, res) {
     res.status(500).json({ error: `Can not get fabs data` });
   }
 }
+
 async function getFab(req, res) {
   const { name } = req.query;
   if (!name) {
@@ -19,6 +21,7 @@ async function getFab(req, res) {
     res.status(500).json({ error: `Can not get fab data name=${name}` });
   }
 }
+
 async function createFab(req, res) {
   const { name, roomNum } = req.body;
   if (!name || !roomNum) {
@@ -31,6 +34,7 @@ async function createFab(req, res) {
     res.status(500).json({ error: `Can not create fab data name=${name}` });
   }
 }
+
 async function updateFab(req, res) {
   const { id, name, roomNum } = req.body;
   if (!id || !name || !roomNum) {
@@ -46,6 +50,7 @@ async function updateFab(req, res) {
     res.status(500).json({ error: `Can not update fab data name=${name}` });
   }
 }
+
 async function deleteFab(req, res) {
   const { name } = req.body;
   try {

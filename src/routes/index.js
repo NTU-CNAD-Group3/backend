@@ -1,11 +1,11 @@
 import express from 'express';
 
-import AdminRoutes from '../routes/admin.js';
+import AdminRoutes from '#src/routes/admin.js';
 
 const router = express.Router();
 
 router.get('/healthy', (req, res) => {
-  res.send('Auth service is healthy.');
+  res.send('Backend service is healthy.');
 });
 
 router.use('/admin', AdminRoutes);

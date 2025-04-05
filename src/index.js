@@ -6,10 +6,10 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 
-import config from './config.js';
-import { databaseConnection } from './models/db.js';
-import logger from './utils/logger.js';
-import routes from './routes/index.js';
+import config from '#src/config.js';
+import { databaseConnection } from '#src/models/db.js';
+import logger from '#src/utils/logger.js';
+import routes from '#src/routes/index.js';
 
 const app = express();
 
