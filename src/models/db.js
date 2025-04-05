@@ -90,4 +90,4 @@ export const databaseConnection = async () => {
     });
   }
 };
-export default {pool, createFabTableText,databaseConnection};
+export default { pool, createFabTableText, databaseConnection };
