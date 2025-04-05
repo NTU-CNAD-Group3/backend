@@ -9,6 +9,7 @@ class Config {
     this.DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || '';
     this.DATABASE_NAME = process.env.DATABASE_NAME || '';
     this.DATABASE_PORT = process.env.DATABASE_PORT || '';
+    this.API_GATEWAY_URL = process.env.API_GATEWAY_URL || '';
   }
 }
 
