@@ -1,12 +1,12 @@
 import { jest } from '@jest/globals';
-import { pool, createFabTableText } from '@/models/db.js';
-import adminController from '@/controllers/adminController.js';
-import adminService from '@/models/adminService.js';
+import { pool, createFabTableText } from '../models/db.js';
+import adminController from '../controllers/adminController.js';
+import adminService from '../models/adminService.js';
 // import logger from '@/utils/logger.js';
-//jest.mock('@/utils/logger.js');
+// jest.mock('@/utils/logger.js');
 describe('Admin Fab Service', () => {
   beforeAll(async () => {
-    //await pool.connect();
+    // await pool.connect();
     await pool.query(createFabTableText);
   });
   afterAll(async () => {

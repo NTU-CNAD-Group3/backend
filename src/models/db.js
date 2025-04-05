@@ -1,6 +1,6 @@
 import pg from 'pg';
-import config from '@/config.js';
-import logger from '@/utils/logger.js';
+import config from '../config.js';
+import logger from '../utils/logger.js';
 
 export const pool = new pg.Pool({
   host: `${config.DATABASE_HOST}`,

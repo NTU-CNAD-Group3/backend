@@ -1,6 +1,6 @@
-import db from '@/models/db.js';
-import logger from '@/utils/logger.js';
-class adminServices {
+import db from '../models/db.js';
+import logger from '../utils/logger.js';
+class AdminServices {
   async getAllFabs() {
     try {
       const result = await db.query('SELECT * FROM fabs');
@@ -14,6 +14,7 @@ class adminServices {
       });
     }
   }
+
   async getFab(name) {
     try {
       const result = await db.query('SELECT * FROM fabs WHERE name = $1', [name]);
@@ -27,6 +28,7 @@ class adminServices {
       });
     }
   }
+
   async createFab(name, roomNum) {
     try {
       const result = await db.query('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING *', [name, roomNum]);
@@ -40,6 +42,7 @@ class adminServices {
       });
     }
   }
+
   async updateFab(id, name, roomNum) {
     try {
       const result = await db.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3 RETURNING *', [name, roomNum, id]);
@@ -53,6 +56,7 @@ class adminServices {
       });
     }
   }
+
   async deleteFab(name) {
     try {
       const result = await db.query('DELETE FROM fabs WHERE name = $1 RETURNING *', [name]);
@@ -67,6 +71,6 @@ class adminServices {
     }
   }
 }
-const adminService = new adminServices();
+const adminService = new AdminServices();
 
 export default adminService;
