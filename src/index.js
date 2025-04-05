@@ -55,12 +55,12 @@ app.use('*', (req, res, next) => {
 app.use((err, req, res, next) => {
   const errResponse = err?.response?.data?.message || err?.message || 'Internal Server Error';
   const errStatusCode = err?.response?.status || err?.status || 500;
-  const errStack = (err?.response?.data?.stack || err?.stack || 'No stack available').replace(/\n/g, ' ');;
+  const errStack = (err?.response?.data?.stack || err?.stack || 'No stack available').replace(/\n/g, ' ');
 
   res.status(errStatusCode);
   res.json({
     message: errResponse,
-    ...(process.env.NODE_ENV === 'development' && { stack: errStack })
+    ...(process.env.NODE_ENV === 'development' && { stack: errStack }),
   });
   logger.error({
     message: `msg=Error occurred method=${req.method} path=${req.path} ip=${req.ip} status=${errStatusCode} url=${req.originalUrl} error=${errResponse} stack=${errStack}`,
