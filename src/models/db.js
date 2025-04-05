@@ -46,7 +46,7 @@ export const createFabTableText = `
 //     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
 //     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
 //     height                  INTEGER       NOT NULL CHECK (height >= 1),
-//     maxEmpty                INTEGER       NOT NULL CHECK (maxEmpty >= 0 AND maxEmpty<=height),
+//     maxEmpty                INTEGER       NOT NULL CHECK (maxEmpty >= 0 AND maxEmpty <= height),
 //     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 //     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 //     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
@@ -73,6 +73,7 @@ export const createFabTableText = `
 //   );
 //   CREATE UNIQUE INDEX IF NOT EXISTS machines_name_index ON machines USING btree (name);
 // `;
+
 export const databaseConnection = async () => {
   try {
     await pool.connect();

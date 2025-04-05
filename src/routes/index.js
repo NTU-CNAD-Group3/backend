@@ -5,8 +5,8 @@ import AdminRoutes from '@/routes/admin.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.send('This is the API root!');
+router.get('/healthy', (req, res) => {
+  res.send('Auth service is healthy.');
 });
 
 router.use('/users', UserRoutes);
