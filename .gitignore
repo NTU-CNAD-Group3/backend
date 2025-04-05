@@ -16,4 +16,4 @@ yarn-error.log*
 .env.local
 
 .DS_Store
-src/__test__/fab.test.js
+src/__tests__/fab.test.js
