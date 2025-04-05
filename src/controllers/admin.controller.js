@@ -1,4 +1,4 @@
-import adminService from '../models/adminService.js';
+import adminService from '../services/admin.service.js';
 async function getAllFabs(req, res) {
   try {
     const fabs = await adminService.getAllFabs();

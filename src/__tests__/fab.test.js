@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { pool, databaseConnection } from '../models/db.js';
-import adminController from '../controllers/adminController.js';
-import adminService from '../models/adminService.js';
+import adminController from '../controllers/admin.controller.js';
+import adminService from '../services/admin.service.js';
 // import logger from '@/utils/logger.js';
 // jest.mock('@/utils/logger.js');
 describe('Admin Fab Service', () => {
