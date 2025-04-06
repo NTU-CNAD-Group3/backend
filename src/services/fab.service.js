@@ -3,8 +3,8 @@ import logger from '#src/utils/logger.js';
 class FabServices {
   async getFabDetails(name) {
     try {
-      //可以自己改要印出甚麼記得名子衝突要重新用AS命名
-      //也可以同時多張表，利用多個LEFT JOIN
+      // 可以自己改要印出甚麼記得名子衝突要重新用AS命名
+      // 也可以同時多張表，利用多個LEFT JOIN
       const query = `
             SELECT  f.id AS fabId, 
                     f.name AS fabName, 
@@ -28,6 +28,7 @@ class FabServices {
       });
     }
   }
+
   async getAllRooms(id) {
     try {
       const result = await pool.query('SELECT * FROM Rooms WHERE fabId = $1', [id]);
@@ -41,6 +42,7 @@ class FabServices {
       });
     }
   }
+
   async getAllFabs() {
     try {
       const result = await pool.query('SELECT * FROM fabs');

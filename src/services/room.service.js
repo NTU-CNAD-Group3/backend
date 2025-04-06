@@ -19,24 +19,26 @@ class RoomServices {
       });
     }
   }
+
   async getRackNum(id) {
     try {
-      const result = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]);
+      const hasRack = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]).rows[0].hasRack;
       logger.info({
-        message: `msg=Room ${id} check hasRack=${rackNum}`,
+        message: `msg=Room ${id} check hasRack=${hasRack}`,
       });
-      return result.rows[0].hasRack;
+      return hasRack;
     } catch (error) {
       logger.error({
         message: `msg=Room ${id} check error error=${error}`,
       });
     }
   }
+
   async updateRoom(id, hasRack) {
     try {
       const result = await pool.query('UPDATE rooms SET hasRack = $1 WHERE id = $2 RETURNING *', [hasRack, id]);
       logger.info({
-        message: `msg=Room ${id} updated hasRack=${rackNum}`,
+        message: `msg=Room ${id} updated hasRack=${hasRack}`,
       });
       return result.rows[0];
     } catch (error) {

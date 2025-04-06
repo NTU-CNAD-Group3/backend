@@ -6,13 +6,14 @@ class AdminServices {
   async watchFab(name) {
     try {
       const result = await fabService.getFabDetails(name);
-      return result.rows;//可以更改要印出的結構目前是並排
+      return result.rows; // 可以更改要印出的結構目前是並排
     } catch (error) {
       logger.error({
         message: `msg=watchFab error error=${error}`,
       });
     }
   }
+
   async createFab(name, roomNum, roomArray) {
     const client = await pool.connect();
     try {
