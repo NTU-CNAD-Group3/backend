@@ -7,4 +7,5 @@ const router = express.Router();
 router.get('/watchFab', adminController.watchFab);
 router.post('/createFab', adminController.createFab);
 
+
 export default router;

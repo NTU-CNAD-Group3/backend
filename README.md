@@ -22,7 +22,6 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
-
 ## API
 
 
@@ -34,3 +33,4 @@ cp .env.development .env
 
 - `curl -X GET "http://localhost:8000/api/admin/watchFab?name=Fab%201"`
 - `curl -X POST http://localhost:8000/api/admin/createFab  -H "Content-Type: application/json" -d '{ "name":"Fab 1", "roomNum": 2, "rooms": [{"name":"Room 1","rackNum": 5, "height": 10},{"name": "Room 2", "rackNum": 3, "height": 8}]}'`
+

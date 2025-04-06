@@ -75,6 +75,7 @@ const createServerTableText = `
   CREATE UNIQUE INDEX IF NOT EXISTS servers_name_index ON servers USING btree (name);
 `;
 
+
 export const databaseConnection = async () => {
   try {
     // await pool.connect();
@@ -82,6 +83,7 @@ export const databaseConnection = async () => {
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
     await pool.query(createServerTableText);
+
     logger.info({
       message: `msg=Database connected`,
     });

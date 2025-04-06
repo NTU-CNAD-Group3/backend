@@ -37,6 +37,7 @@ class AdminServices {
       throw error;
     } finally {
       client.release();
+
     }
   }
 }
