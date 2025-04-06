@@ -4,10 +4,8 @@ import adminController from '#src/controllers/admin.controller.js';
 
 const router = express.Router();
 
-router.get('/getAllFabs', adminController.getAllFabs);
-router.get('/getFab', adminController.getFab);
+router.get('/watchFab', adminController.watchFab);
 router.post('/createFab', adminController.createFab);
-router.put('/updateFab', adminController.updateFab);
-router.delete('/deleteFab', adminController.deleteFab);
+
 
 export default router;

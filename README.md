@@ -22,11 +22,15 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
-# Api
+## API
 
 
-- `/api/admin/getAllFabs`: Get all fabs information
-- `/api/admin/getFab`:  Get a fab information with name
-- `/api/admin/createFab`:  Create a fab with name and roomNum
-- `/api/admin/updateFab`: Update a fab's name and roomNum with id
-- `/api/admin/deleteFab`:  Delete a fab with name
+- `/api/admin/watchFab?name=Fab`: Print the Fab information
+- `/api/admin/createFab`: Create fab with rooms
+
+### how to test 
+
+
+- `curl -X GET "http://localhost:8000/api/admin/watchFab?name=Fab%201"`
+- `curl -X POST http://localhost:8000/api/admin/createFab  -H "Content-Type: application/json" -d '{ "name":"Fab 1", "roomNum": 2, "rooms": [{"name":"Room 1","rackNum": 5, "height": 10},{"name": "Room 2", "rackNum": 3, "height": 8}]}'`
+

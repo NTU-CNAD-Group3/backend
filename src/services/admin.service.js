@@ -1,73 +1,43 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
+import fabService from '#src/services/fab.service.js';
+import roomService from '#src/services/room.service.js';
 class AdminServices {
-  async getAllFabs() {
+  async watchFab(name) {
     try {
-      const result = await pool.query('SELECT * FROM fabs');
-      logger.info({
-        message: `msg=AllFabs get`,
-      });
-      return result.rows;
+      const result = await fabService.getFabDetails(name);
+      return result.rows; // 可以更改要印出的結構目前是並排
     } catch (error) {
       logger.error({
-        message: `msg=Getall fabs error error=${error}`,
+        message: `msg=watchFab error error=${error}`,
       });
     }
   }
 
-  async getFab(name) {
+  async createFab(name, roomNum, roomArray) {
+    const client = await pool.connect();
     try {
-      const result = await pool.query('SELECT * FROM fabs WHERE name = $1', [name]);
+      await client.query('BEGIN');
+      const fab = await fabService.createFab(name, roomNum);
+      const fabId = fab.id;
+      const roomPromises = roomArray.map((room) => {
+        return roomService.createRoom(room.name, room.rackNum, fabId, room.height);
+      });
+      const rooms = await Promise.all(roomPromises);
+      await client.query('COMMIT');
       logger.info({
-        message: `msg=Fab get`,
+        message: `msg=Fab created with ${rooms.length} rooms`,
       });
-      return result.rows[0];
+      return { fab, rooms };
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error({
-        message: `msg=Fab get error error=${error}`,
+        message: `msg=Error creating fab and rooms error=${error}`,
       });
-    }
-  }
+      throw error;
+    } finally {
+      client.release();
 
-  async createFab(name, roomNum) {
-    try {
-      const result = await pool.query('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING *', [name, roomNum]);
-      logger.info({
-        message: `msg=Fab created name=${name}`,
-      });
-      return result.rows[0];
-    } catch (error) {
-      logger.error({
-        message: `msg=Fab create name=${name} error error=${error}`,
-      });
-    }
-  }
-
-  async updateFab(id, name, roomNum) {
-    try {
-      const result = await pool.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3 RETURNING *', [name, roomNum, id]);
-      logger.info({
-        message: `msg=Fab updated name=${name} roomNum=${roomNum}`,
-      });
-      return result.rows[0];
-    } catch (error) {
-      logger.error({
-        message: `msg=Fab update id=${id} error error=${error}`,
-      });
-    }
-  }
-
-  async deleteFab(name) {
-    try {
-      const result = await pool.query('DELETE FROM fabs WHERE name = $1 RETURNING *', [name]);
-      logger.info({
-        message: `msg=Fab deleted name=${name}`,
-      });
-      return result.rows[0];
-    } catch (error) {
-      logger.error({
-        message: `msg=Fab delete name=${name} error error=${error}`,
-      });
     }
   }
 }
