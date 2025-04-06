@@ -21,3 +21,12 @@ cp .env.development .env
 - `npm run test`: Run the tests.
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
+
+# Api
+
+
+- `/api/admin/getAllFabs`: Get all fabs information
+- `/api/admin/getFab`:  Get a fab information with name
+- `/api/admin/createFab`:  Create a fab with name and roomNum
+- `/api/admin/updateFab`: Update a fab's name and roomNum with id
+- `/api/admin/deleteFab`:  Delete a fab with name
