@@ -24,63 +24,64 @@ const createFabTableText = `
   );
   CREATE UNIQUE INDEX IF NOT EXISTS fabs_name_index ON fabs USING btree (name);
 `;
-// const createRoomTableText = `
-//   CREATE TABLE IF NOT EXISTS rooms (
-//     id                      SERIAL        PRIMARY KEY,
-//     name                    VARCHAR(255)  NOT NULL,
-//     rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
-//     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
-//     height                  INTEGER       NOT NULL CHECK (height >= 1),
-//     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE
-//   );
-// `;
-// const createRackTableText = `
-//   CREATE TABLE IF NOT EXISTS racks (
-//     id                      SERIAL        PRIMARY KEY,
-//     name                    VARCHAR(255)  NOT NULL,
-//     service                 VARCHAR(255)  NOT NULL,
-//     ip                      INET          NOT NULL,
-//     rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
-//     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
-//     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
-//     height                  INTEGER       NOT NULL CHECK (height >= 1),
-//     maxEmpty                INTEGER       NOT NULL CHECK (maxEmpty >= 0 AND maxEmpty <= height),
-//     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
-//     FOREIGN KEY (roomId)    REFERENCES    rooms(id) ON DELETE CASCADE
-//   );
-// `;
-// const createMachineTableText = `
-//   CREATE TABLE IF NOT EXISTS machines (
-//     id                      SERIAL        PRIMARY KEY,
-//     name                    VARCHAR(255)  NOT NULL UNIQUE,
-//     service                 VARCHAR(255)  NOT NULL,
-//     ip                      INET          NOT NULL,
-//     unit                    INTEGER       NOT NULL CHECK (unit >= 1),
-//     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
-//     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
-//     rackId                  INTEGER       NOT NULL CHECK (rackId >= 1),
-//     frontPosition           INTEGER       NOT NULL,
-//     backPosition            INTEGER       NOT NULL,
-//     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
-//     FOREIGN KEY (roomId)    REFERENCES    rooms(id) ON DELETE CASCADE,
-//     FOREIGN KEY (rackId)    REFERENCES    racks(id) ON DELETE CASCADE
-//   );
-//   CREATE UNIQUE INDEX IF NOT EXISTS machines_name_index ON machines USING btree (name);
-// `;
+const createRoomTableText = `
+  CREATE TABLE IF NOT EXISTS rooms (
+    id                      SERIAL        PRIMARY KEY,
+    name                    VARCHAR(255)  NOT NULL,
+    hasRack                 INTEGER       DEFAULT 0,
+    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
+    fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
+    height                  INTEGER       NOT NULL CHECK (height >= 1),
+    createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE
+  );
+`;
+const createRackTableText = `
+  CREATE TABLE IF NOT EXISTS racks (
+    id                      SERIAL        PRIMARY KEY,
+    name                    VARCHAR(255)  NOT NULL,
+    service                 VARCHAR(255)  NOT NULL,
+    ip                      INET          NOT NULL,
+    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
+    fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
+    roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
+    height                  INTEGER       NOT NULL CHECK (height >= 1),
+    maxEmpty                INTEGER       NOT NULL CHECK (maxEmpty >= 0 AND maxEmpty <= height),
+    createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
+    FOREIGN KEY (roomId)    REFERENCES    rooms(id) ON DELETE CASCADE
+  );
+`;
+const createServerTableText = `
+  CREATE TABLE IF NOT EXISTS servers (
+    id                      SERIAL        PRIMARY KEY,
+    name                    VARCHAR(255)  NOT NULL UNIQUE,
+    service                 VARCHAR(255)  NOT NULL,
+    ip                      INET          NOT NULL,
+    unit                    INTEGER       NOT NULL CHECK (unit >= 1),
+    fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
+    roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
+    rackId                  INTEGER       NOT NULL CHECK (rackId >= 1),
+    frontPosition           INTEGER       NOT NULL,
+    backPosition            INTEGER       NOT NULL,
+    createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
+    FOREIGN KEY (roomId)    REFERENCES    rooms(id) ON DELETE CASCADE,
+    FOREIGN KEY (rackId)    REFERENCES    racks(id) ON DELETE CASCADE
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS servers_name_index ON servers USING btree (name);
+`;
 
 export const databaseConnection = async () => {
   try {
     // await pool.connect();
     await pool.query(createFabTableText);
-    // await pool.query(createRoomTableText);
-    // await pool.query(createRackTableText);
-    // await pool.query(createMachineTableText);
+    await pool.query(createRoomTableText);
+    await pool.query(createRackTableText);
+    await pool.query(createServerTableText);
     logger.info({
       message: `msg=Database connected`,
     });
