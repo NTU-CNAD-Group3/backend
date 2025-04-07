@@ -1,7 +1,8 @@
-import { pool } from '#src/models/db.js';
+import { pool, databaseRecreation } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 import fabService from '#src/services/fab.service.js';
 import roomService from '#src/services/room.service.js';
+import rackService from '#src/services/rack.service.js';
 class AdminServices {
   async watchFab(name) {
     try {
@@ -37,7 +38,46 @@ class AdminServices {
       throw error;
     } finally {
       client.release();
+    }
+  }
 
+  async addRack(name, service, fabId, roomId, height) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const rackNum = await roomService.getRackNum(roomId);
+      const hasRack = await roomService.getHasRack(roomId);
+      if (hasRack === rackNum) {
+        throw new Error('The room is Full');
+      }
+      const ip = '0.0.0.0'; // must has function to deal with it but do nothing now
+      const result = await rackService.createRack(name, service, ip, fabId, roomId, height);
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=addRack success`,
+      });
+      return result.rows;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({
+        message: `msg=Error addRack error=${error}`,
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async clearDatabase() {
+    try {
+      await databaseRecreation();
+      logger.info({
+        message: `msg=clearDatabase success`,
+      });
+    } catch (error) {
+      logger.error({
+        message: `msg=clearDatabase error error=${error}`,
+      });
     }
   }
 }

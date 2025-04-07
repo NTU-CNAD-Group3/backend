@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get('/watchFab', adminController.watchFab);
 router.post('/createFab', adminController.createFab);
-
+router.post('/addRack', adminController.addRack);
+router.get('/clearDatabase', adminController.clearDatabase);
 
 export default router;
