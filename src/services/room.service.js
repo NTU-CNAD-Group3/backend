@@ -20,9 +20,10 @@ class RoomServices {
     }
   }
 
-  async getRackNum(id) {
+  async getHasRack(id) {
     try {
-      const hasRack = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]).rows[0].hasRack;
+      const result = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]);
+      const hasRack = result.rows[0].hasrack;
       logger.info({
         message: `msg=Room ${id} check hasRack=${hasRack}`,
       });
@@ -30,6 +31,22 @@ class RoomServices {
     } catch (error) {
       logger.error({
         message: `msg=Room ${id} check error error=${error}`,
+      });
+    }
+  }
+
+  async getRackNum(id) {
+    try {
+      const result = await pool.query('SELECT rackNum FROM rooms WHERE id = $1', [id]);
+
+      const rackNum = result.rows[0].racknum;
+      logger.info({
+        message: `msg=Room ${id} get rackNum=${rackNum}`,
+      });
+      return rackNum;
+    } catch (error) {
+      logger.error({
+        message: `msg=Room ${id} get error error=${error}`,
       });
     }
   }

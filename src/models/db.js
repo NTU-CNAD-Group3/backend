@@ -43,7 +43,6 @@ const createRackTableText = `
     name                    VARCHAR(255)  NOT NULL,
     service                 VARCHAR(255)  NOT NULL,
     ip                      INET          NOT NULL,
-    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
     height                  INTEGER       NOT NULL CHECK (height >= 1),
@@ -75,6 +74,9 @@ const createServerTableText = `
   CREATE UNIQUE INDEX IF NOT EXISTS servers_name_index ON servers USING btree (name);
 `;
 
+const dropTableText = `
+  DROP TABLE IF EXISTS servers, racks, rooms, fabs CASCADE;
+`;
 
 export const databaseConnection = async () => {
   try {
@@ -93,4 +95,22 @@ export const databaseConnection = async () => {
     });
   }
 };
-export default { pool, databaseConnection };
+export const databaseRecreation = async () => {
+  try {
+    // await pool.connect();
+    await pool.query(dropTableText);
+    await pool.query(createFabTableText);
+    await pool.query(createRoomTableText);
+    await pool.query(createRackTableText);
+    await pool.query(createServerTableText);
+
+    logger.info({
+      message: `msg=Database recreated`,
+    });
+  } catch (error) {
+    logger.error({
+      message: `msg=Database recreated error error=${error}`,
+    });
+  }
+};
+export default { pool, databaseConnection, databaseRecreation };
