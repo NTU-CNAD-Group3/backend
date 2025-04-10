@@ -1,14 +1,13 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 class RackServices {
-  async createRack(name, service, ip, fabId, roomId, height) {
+  async createRack(name, service, fabId, roomId, height) {
     try {
       const result = await pool.query(
-        'INSERT INTO racks (name, service, ip, fabId, roomId, height ,maxEmpty) VALUES ($1, $2, $3, $4,$5, $6, $7) RETURNING *',
+        'INSERT INTO racks (name, service,  fabId, roomId, height ,maxEmpty) VALUES ($1, $2, $3, $4,$5, $6) RETURNING *',
         [
           name,
           service,
-          ip,
           fabId,
           roomId,
           height,
