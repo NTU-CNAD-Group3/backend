@@ -14,6 +14,19 @@ pool.on('error', () => {
   process.exit(-1);
 });
 
+const createIpTableText = `
+  CREATE TABLE IF NOT EXISTS ipPools (
+    id                      SERIAL        PRIMARY KEY,
+    fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
+    service                 VARCHAR(255)  NOT NULL,
+    cidr                    INET          NOT NULL,
+    usedIps                 INET[]        ,
+    createdAt               TIMESTAMPTZ   DEFAULT CURRENT_TIMESTAMP,
+    updatedAt               TIMESTAMPTZ   DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fabId) REFERENCES fabs(id) ON DELETE CASCADE
+  ); 
+`;
+
 const createFabTableText = `
   CREATE TABLE IF NOT EXISTS fabs (
     id                      SERIAL        PRIMARY KEY,
@@ -42,7 +55,6 @@ const createRackTableText = `
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL,
     service                 VARCHAR(255)  NOT NULL,
-    ip                      INET          NOT NULL,
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
     height                  INTEGER       NOT NULL CHECK (height >= 1),
@@ -75,7 +87,7 @@ const createServerTableText = `
 `;
 
 const dropTableText = `
-  DROP TABLE IF EXISTS servers, racks, rooms, fabs CASCADE;
+  DROP TABLE IF EXISTS servers, racks, rooms, fabs, ipPools CASCADE;
 `;
 
 export const databaseConnection = async () => {
@@ -85,6 +97,7 @@ export const databaseConnection = async () => {
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
     await pool.query(createServerTableText);
+    await pool.query(createIpTableText);
 
     logger.info({
       message: `msg=Database connected`,
@@ -103,6 +116,7 @@ export const databaseRecreation = async () => {
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
     await pool.query(createServerTableText);
+    await pool.query(createIpTableText);
 
     logger.info({
       message: `msg=Database recreated`,

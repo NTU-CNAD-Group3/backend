@@ -15,10 +15,14 @@ class FabServices {
                     r.height,
                     rk.id AS rackId,
                     rk.name AS rackName,
-                    rk.service
+                    rk.service,
+                    s.name AS severName,
+                    s.ip,
+                    s.service AS serverService
             FROM fabs f
             LEFT JOIN rooms r ON r.fabId = f.id
             LEFT JOIN racks rk ON rk.roomId = r.id
+            LEFT JOIN servers s ON s.rackId = rk.id
             WHERE f.name = $1;
             `;
       const result = await pool.query(query, [name]);

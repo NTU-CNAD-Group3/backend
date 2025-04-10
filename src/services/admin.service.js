@@ -50,8 +50,7 @@ class AdminServices {
       if (hasRack === rackNum) {
         throw new Error('The room is Full');
       }
-      const ip = '0.0.0.0'; // must has function to deal with it but do nothing now
-      const result = await rackService.createRack(name, service, ip, fabId, roomId, height);
+      const result = await rackService.createRack(name, service, fabId, roomId, height);
       await client.query('COMMIT');
       logger.info({
         message: `msg=addRack success`,
