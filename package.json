@@ -8,8 +8,8 @@
     "start": "cross-env NODE_ENV=production node ./src/index.js",
     "lint": "eslint ./src/**/*.js --fix",
     "format": "prettier --write ./**/*.{js,json}",
-    "start:admin": "cross-env NODE_ENV=test node src/admin.js",
-    "start:user" : "cross-env NODE_ENV=test node src/user.js",
+    "start:admin": "cross-env NODE_ENV=test node src/index.js",
+    "start:user" : "cross-env NODE_ENV=test node src/index.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false --testPathPattern=src/__tests__",
     "test:e2e": "jest __tests__/fab.e2e.test.js"
   },

@@ -53,13 +53,9 @@ jobs:
 
       - name: Start admin & user API
         run: |
-          npm run start:admin &
-          echo $! > admin.pid
-          npm run start:user  &
-          echo $! > user.pid
+          npm run start
 
-      - name: Wait for ports 8000 / 8001
-        run: npx wait-on tcp:8000 tcp:8001
+        run: npx wait-on tcp:8000
 
       - name: Run Jest tests
         run: npm run test:e2e
