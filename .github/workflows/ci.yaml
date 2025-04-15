@@ -35,11 +35,11 @@ jobs:
           --health-retries=5
 
     env:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_NAME: backend
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: backend
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
 
       - name: Start admin & user API
         run: |
-          npm run start
+          npm run start&
 
       - name: Wait for ports 8000
         run: npx wait-on tcp:8000
