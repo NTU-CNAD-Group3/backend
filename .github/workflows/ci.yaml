@@ -52,10 +52,9 @@ jobs:
       - run: npm ci
 
       - name: Start admin & user API
-        run: |
-          npm run start
+        run: npm run start
 
-        run: npx wait-on tcp:8000
+        run: npx wait-on tcp:8000 tcp:8001
 
       - name: Run Jest tests
         run: npm run test:e2e
