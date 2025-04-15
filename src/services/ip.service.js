@@ -14,7 +14,7 @@ class IpServices {
       const poolData = result.rows[0];
       const usedIps = poolData.usedIps || [];
       const cidr = poolData.cidr;
-      
+
       const ip = await ipUtils.getAvailableIp(cidr, usedIps);
       if (!ip) {
         throw new Error('No available IP in the pool');
