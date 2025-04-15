@@ -5,7 +5,7 @@ import {
   getAllRoomsController,
   getAllFabsController,
   getFabController,
-  createFabController,
+  // createFabController,
   updateFabController,
   deleteFabController,
 } from '#src/controllers/fab.controller.js';
@@ -16,7 +16,7 @@ router.get('/details', getFabDetailsController);
 router.get('/rooms/:id', getAllRoomsController);
 router.get('/allFabs', getAllFabsController);
 router.get('/', getFabController);
-router.post('/', createFabController);
+// router.post('/', createFabController);
 router.put('/', updateFabController);
 router.delete('/', deleteFabController);
 

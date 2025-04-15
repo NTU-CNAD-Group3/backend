@@ -1,19 +1,21 @@
-import { createRoom, getHasRack, getRackNum, updateRoom } from '#src/services/room.service.js';
+import roomService from '#src/services/room.service.js';
 
-async function createRoomController(req, res) {
-  const { name, rackNum, fabId, height } = req.body;
-  if (!name || !rackNum || !fabId || !height) {
-    return res.status(400).json({ error: 'Name, rackNum, fabId, and height are required' });
+const { createRoom, getHasRack, getRackNum, updateRoom } = roomService;
+
+export const createRoomController = async (req, res) => {
+  const { name, fabId } = req.body;
+  if (!name || !fabId) {
+    return res.status(400).json({ error: 'Name and fabId are required' });
   }
   try {
-    const room = await createRoom(name, rackNum, fabId, height);
+    const room = await createRoom(name, fabId);
     res.status(201).json(room);
   } catch (error) {
     res.status(500).json({ error: `Can not create room data name=${name}` });
   }
-}
+};
 
-async function getHasRackController(req, res) {
+export const getHasRackController = async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ error: 'Room ID is required' });
@@ -22,11 +24,11 @@ async function getHasRackController(req, res) {
     const hasRack = await getHasRack(id);
     res.status(200).json(hasRack);
   } catch (error) {
-    res.status(500).json({ error: `Can not get room data id=${id}` });
+    res.status(500).json({ error: `Can not get has rack data id=${id}` });
   }
-}
+};
 
-async function getRackNumController(req, res) {
+export const getRackNumController = async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ error: 'Room ID is required' });
@@ -35,27 +37,20 @@ async function getRackNumController(req, res) {
     const rackNum = await getRackNum(id);
     res.status(200).json(rackNum);
   } catch (error) {
-    res.status(500).json({ error: `Can not get room data id=${id}` });
+    res.status(500).json({ error: `Can not get rack num data id=${id}` });
   }
-}
+};
 
-async function updateRoomController(req, res) {
+export const updateRoomController = async (req, res) => {
   const { id } = req.params;
-  const { hasRack } = req.body;
-  if (!id || hasRack === undefined) {
-    return res.status(400).json({ error: 'Room ID and hasRack are required' });
+  const { name, fabId } = req.body;
+  if (!id || !name || !fabId) {
+    return res.status(400).json({ error: 'ID, name and fabId are required' });
   }
   try {
-    const room = await updateRoom(id, hasRack);
+    const room = await updateRoom(id, name, fabId);
     res.status(200).json(room);
   } catch (error) {
     res.status(500).json({ error: `Can not update room data id=${id}` });
   }
-}
-
-export default {
-  createRoomController,
-  getHasRackController,
-  getRackNumController,
-  updateRoomController,
 };

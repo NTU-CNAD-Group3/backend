@@ -1,9 +1,11 @@
-import { createRack, getMaxEmpty, deleteRack } from '#src/services/rack.service.js';
+import rackService from '#src/services/rack.service.js';
 
-async function createRackController(req, res) {
+const { createRack, getMaxEmpty, deleteRack } = rackService;
+
+export const createRackController = async (req, res) => {
   const { name, service, fabId, roomId, height } = req.body;
   if (!name || !service || !fabId || !roomId || !height) {
-    return res.status(400).json({ error: 'Name, service, fabId, roomId, and height are required' });
+    return res.status(400).json({ error: 'Name , service, fabId, roomId, and height are required' });
   }
   try {
     const rack = await createRack(name, service, fabId, roomId, height);
@@ -11,22 +13,22 @@ async function createRackController(req, res) {
   } catch (error) {
     res.status(500).json({ error: `Can not create rack data name=${name}` });
   }
-}
+};
 
-async function getMaxEmptyController(req, res) {
+export const getMaxEmptyController = async (req, res) => {
   const { id } = req.params;
   if (!id) {
-    return res.status(400).json({ error: 'Room ID is required' });
+    return res.status(400).json({ error: 'Rack ID is required' });
   }
   try {
     const maxEmpty = await getMaxEmpty(id);
     res.status(200).json(maxEmpty);
   } catch (error) {
-    res.status(500).json({ error: `Can not get max empty rack data id=${id}` });
+    res.status(500).json({ error: `Can not get max empty data id=${id}` });
   }
-}
+};
 
-async function deleteRackController(req, res) {
+export const deleteRackController = async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ error: 'Rack ID is required' });
@@ -37,10 +39,4 @@ async function deleteRackController(req, res) {
   } catch (error) {
     res.status(500).json({ error: `Can not delete rack data id=${id}` });
   }
-}
-
-export default {
-  createRackController,
-  getMaxEmptyController,
-  deleteRackController,
 };

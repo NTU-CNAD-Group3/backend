@@ -1,32 +1,29 @@
-import { assign, createIpPool } from '#src/services/ip.service.js';
+import ipSerive from '#src/services/ip.service.js';
 
-async function assignIpController(req, res) {
-  const { fabId, service } = req.body;
-  if (!fabId || !service) {
-    return res.status(400).json({ error: 'fabId and service are required' });
+const { assign, createIpPool } = ipSerive;
+
+export const assignIpController = async (req, res) => {
+  const { ip, fabId, roomId, rackId } = req.body;
+  if (!ip || !fabId || !roomId || !rackId) {
+    return res.status(400).json({ error: 'IP, fabId, roomId, and rackId are required' });
   }
   try {
-    const ip = await assign(fabId, service);
-    res.status(200).json(ip);
+    const assignedIp = await assign(ip, fabId, roomId, rackId);
+    res.status(201).json(assignedIp);
   } catch (error) {
     res.status(500).json({ error: `Can not assign IP` });
   }
-}
+};
 
-async function createIpPoolController(req, res) {
-  const { fabId, service } = req.body;
-  if (!fabId || !service) {
-    return res.status(400).json({ error: 'fabId and service are required' });
+export const createIpPoolController = async (req, res) => {
+  const { fabId, roomId, rackId, startIp, endIp } = req.body;
+  if (!fabId || !roomId || !rackId || !startIp || !endIp) {
+    return res.status(400).json({ error: 'fabId, roomId, rackId, startIp and endIp are required' });
   }
   try {
-    const ipPool = await createIpPool(fabId, service);
+    const ipPool = await createIpPool(fabId, roomId, rackId, startIp, endIp);
     res.status(201).json(ipPool);
   } catch (error) {
     res.status(500).json({ error: `Can not create IP pool` });
   }
-}
-
-export default {
-  assignIpController,
-  createIpPoolController,
 };
