@@ -2,11 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, hhhh1300]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +15,61 @@ jobs:
     uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/lint-ci.yaml@main
     secrets: inherit
 
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backend
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Start admin & user API
+        run: |
+          npm run start:admin &
+          echo $! > admin.pid
+          npm run start:user  &
+          echo $! > user.pid
+
+      - name: Wait for ports 8000 / 8001
+        run: npx wait-on tcp:8000 tcp:8001
+
+      - name: Run Jest tests
+        run: npm run test:e2e
+
+      - name: Stop background servers
+        if: always()
+        run: |
+          kill $(cat admin.pid user.pid) || true
+
   sonarqube:
+    needs: [lint, test]
     uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/sonarqube-ci.yaml@main
     secrets: inherit
