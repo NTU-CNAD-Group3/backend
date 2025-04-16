@@ -1,7 +1,7 @@
 // require axios
 const axios = require('axios');
 
-const admin = 'http://localhost:8001/api/admin';
+const admin = 'http://localhost:8000/api/admin';
 const user = 'http://localhost:8001/api/user';
 
 describe('Fab full life‑cycle', () => {
