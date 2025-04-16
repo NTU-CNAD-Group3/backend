@@ -1,6 +1,7 @@
 node_modules/
 build/
 coverage/
+pg-data
 
 logs
 *.log
@@ -14,5 +15,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env.local
+
+docker-compose.yml
 
 .DS_Store
