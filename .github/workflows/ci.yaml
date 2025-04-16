@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, hhhh1300]
+    branches: [main]
   pull_request:
     branches: [main]
 

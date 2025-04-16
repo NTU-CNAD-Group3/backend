@@ -16,4 +16,6 @@ yarn-error.log*
 .env.production.local
 .env.local
 
+docker-compose.yml
+
 .DS_Store
