@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 const admin = 'http://localhost:8000/api/admin';
-const user = 'http://localhost:8001/api/user';
+const user = 'http://localhost:8000/api/user';
 
 describe('Fab full life‑cycle', () => {
   // Jest 預設 5s 可能不夠，拉長一點
