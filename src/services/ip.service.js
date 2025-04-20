@@ -29,16 +29,17 @@ class IpServices {
       }
 
       const usedIps = poolData.usedIps || [];
+      const ipPoolId = poolData.id;
 
       console.log(ip);
       usedIps.push(ip);
-      await pool.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
+      await pool.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, ipPoolId]);
 
       logger.info({
         message: `Assigned IP ${ip} to service=${service} in fabId=${fabId}`,
       });
 
-      return ip;
+      return [ ip, ipPoolId ];
     } catch (error) {
       logger.error({
         message: `msg=Assigned IP error=${error.message}`,
@@ -82,47 +83,75 @@ class IpServices {
 
   async release(fabId, server) {
     try {
-      let serverResult = await pool.query(`SELECT * FROM servers WHERE name = $1`, [server.name]);
+      let serverResult = await pool.query(`SELECT * FROM servers WHERE fabId = $1 AND name = $2`, [fabId, server]);
       if (serverResult.rows.length === 0) {
-        throw new Error(`Server not found: ${server.name}`);
+        throw new Error(`Server not found: ${server}`);
       }
-      const service = serverResult.rows[0].service;
-      let ipPoolsResult = await pool.query(`SELECT * FROM ipPools WHERE fabId = $1 AND service = $2`, [fabId, service]);
+      const serverData = serverResult.rows[0];
+      const ipPoolId = serverData.ipPoolId;
+      let ipPoolsResult = await pool.query(`SELECT * FROM ipPools WHERE fabId = $1 AND id = $2`, [fabId, ipPoolId]);
       if (ipPoolsResult.rows.length === 0) {
         throw new Error('No IP pool found for the given fabId');
       }
       
-      const ip = server.ip;
-      let poolData
-      let usedIps;
-      let found = false;
-      for (let i = 0; i < ipPoolsResult.rows.length; i++) {
-        poolData = ipPoolsResult.rows[i];
-        usedIps = poolData.usedIps || [];
-        if (usedIps.includes(ip)) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        throw new Error(`IP ${ip} not found in any pool for fabId=${fabId}`);
-      }
+      const ip = serverData.ip;
+      const poolData = ipPoolsResult.rows[0];
+      const usedIps = poolData.usedIps || [];
 
-      usedIps.splice(usedIps.indexOf(ip), 1);
+      const index = usedIps.indexOf(ip);
+      if (index !== -1) {
+        usedIps.splice(index, 1);
+      }
       await pool.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
 
       logger.info({
-        message: `Released IP ${ip} from server=${server.name} in fabId=${fabId}`,
+        message: `Released IP ${ip} from server=${server} in fabId=${fabId}`,
       });
 
       return ip;
     } catch (error) {
       logger.error({
-        message: `Error releasing IP for fabId=${fabId}, server=${server.name}: ${error.message}`,
+        message: `Error releasing IP for fabId=${fabId}, server=${server}: ${error.message}`,
       });
       throw error;
     }
   }
+
+  async getAllIp(service) {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
+      if (result.rows.length === 0) {
+        throw new Error(`No IP pool found for service=${service}`);
+      }
+
+      const cidr = result.rows[0].cidr;
+      const allIps = await ipUtils.getAllIP(cidr);
+      return allIps;
+    } catch (error) {
+      logger.error({
+        message: `Error getting all IPs for service=${service}: ${error.message}`,
+      });
+      throw error;
+    }
+  }
+
+  async getUsedIp(service) {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
+      if (result.rows.length === 0) {
+        throw new Error(`No IP pool found for service=${service}`);
+      }
+
+      const usedIps = result.rows[0].usedIps || [];
+      return usedIps;
+    } catch (error) {
+      logger.error({
+        message: `Error getting used IPs for service=${service}: ${error.message}`,
+      });
+      throw error;
+    }
+  }
+
 }
 const ipService = new IpServices();
 

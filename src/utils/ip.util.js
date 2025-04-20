@@ -14,6 +14,15 @@ class IpUtils {
     }
     return null;
   }
+
+  async getAllIP(cidrStr) {
+    if (!cidrStr || !IPCIDR.isValidCIDR(cidrStr)) {
+        throw new Error(`Invalid CIDR format: ${cidrStr}`);
+    }
+    const cidr = new IPCIDR(cidrStr);
+    const allIps = cidr.toArray();  
+    return allIps;
+  }
 }
 
 const ipUtils = new IpUtils();
