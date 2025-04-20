@@ -65,9 +65,9 @@ class FabServices {
     }
   }
 
-  async getFab(name) {
+  async getFab(id) {
     try {
-      const result = await pool.query('SELECT * FROM fabs WHERE name = $1', [name]);
+      const result = await pool.query('SELECT * FROM fabs WHERE id = $1', [id]);
       logger.info({
         message: `msg=Fab get`,
       });

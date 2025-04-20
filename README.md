@@ -53,9 +53,9 @@ cp .env.development .env
 
 ### how to test 
 
-
+- `npm run test:e2e`
 - `curl -X GET "http://localhost:8000/api/admin/watchFab?name=Fab%201"`
 - `curl -X POST http://localhost:8000/api/admin/createFab  -H "Content-Type: application/json" -d '{ "name":"Fab 1", "roomNum": 2, "rooms": [{"name":"Room 1","rackNum": 5, "height": 10},{"name": "Room 2", "rackNum": 3, "height": 8}]}'`
 - `curl -X POST http://localhost:8000/api/admin/addRack  -H "Content-Type: application/json" -d '{ "name":"Rack 1", "roomId": 1, "fabId": 1, "service": "any", "height": 8 }'`
 - `curl -X GET "http://localhost:8000/api/admin/clearDatabase"`
-- `curl -X POST http://localhost:8001/api/user/addServer  -H "Content-Type: application/json" -d '{ "name":"Host 1", "roomId": 1, "fabId": 1,"rackId": 1, "service": "any", "unit": 1 }'`
+- `curl -X POST http://localhost:8000/api/user/addServer  -H "Content-Type: application/json" -d '{ "name":"Host 1", "roomId": 1, "fabId": 1,"rackId": 1, "service": "any", "unit": 1 }'`

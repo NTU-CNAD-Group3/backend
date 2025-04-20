@@ -3,6 +3,12 @@ import logger from '#src/utils/logger.js';
 class ServerServices {
   async createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) {
     try {
+      const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3))`;
+      const overlapResult = await pool.query(overlapQuery, [rackId, frontPosition, backPosition]);
+
+      if (overlapResult.rows.length > 0) {
+        throw new Error('Position already occupied in this rack.');
+      }
       const result = await pool.query(
         'INSERT INTO servers (name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
         [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition],
@@ -49,37 +55,17 @@ class ServerServices {
     }
   }
 
-  async findServers(filters = {}) {
+  async getServer(id) {
     try {
-      const allowedFields = ['id', 'name', 'service', 'ip', 'unit', 'fabId', 'roomId', 'rackId', 'ipPoolId', 'frontPosition', 'backPosition', 'createdAt', 'updatedAt'];
-      const filterKeys = Object.keys(filters);
-      for (const key of filterKeys) {
-        if (!allowedFields.includes(key)) {
-          throw new Error(`Invalid field for findServer: ${key}`);
-        }
-      }
-  
-      let query = 'SELECT * FROM servers';
-      const queryParams = [];
-
-      if (filterKeys.length > 0) {
-        const conditions = filterKeys.map((key, i) => `"${key}" = $${i + 1}`).join(' AND ');
-        query += ` WHERE ${conditions}`;
-        filterKeys.forEach((key) => queryParams.push(filters[key]));
-      }
-  
-      const result = await pool.query(query, queryParams);
-  
+      const result = await pool.query('SELECT * FROM servers WHERE id = $1', [id]);
       logger.info({
-        message: `msg=Find server by ${JSON.stringify(filters)}`,
+        message: `msg=Get server by id=${id}`,
       });
-  
-      return result.rows;
+      return result.rows[0];
     } catch (error) {
       logger.error({
-        message: `msg=Find server by ${JSON.stringify(filters)} error=${error.message}`,
+        message: `msg=Get server by id=${id} error error=${error}`,
       });
-      throw error;
     }
   }
 
@@ -96,6 +82,8 @@ class ServerServices {
       });
     }
   }
+
+
 }
 const serverService = new ServerServices();
 

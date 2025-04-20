@@ -117,8 +117,8 @@ export const databaseRecreation = async () => {
     await pool.query(createFabTableText);
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
-    await pool.query(createServerTableText);
     await pool.query(createIpTableText);
+    await pool.query(createServerTableText);
 
     logger.info({
       message: `msg=Database recreated`,
