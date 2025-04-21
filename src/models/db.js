@@ -129,4 +129,18 @@ export const databaseRecreation = async () => {
     });
   }
 };
-export default { pool, databaseConnection, databaseRecreation };
+
+export const databaseClose = async () => {
+  try {
+    await pool.end();
+    logger.info({
+      message: `msg=Database connection closed`,
+    });
+  } catch (error) {
+    logger.error({
+      message: `msg=Database connection close error error=${error}`,
+    });
+  }
+};
+
+export default { pool, databaseConnection, databaseRecreation, databaseClose };
