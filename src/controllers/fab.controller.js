@@ -77,12 +77,12 @@ export const updateFabController = async (req, res) => {
 };
 
 export const deleteFabController = async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
-    return res.status(400).json({ error: 'ID is required' });
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
   }
   try {
-    const fab = await deleteFab(id);
+    const fab = await deleteFab(name);
     res.status(200).json(fab);
   } catch (error) {
     res.status(500).json({ error: `Can not delete fab` });

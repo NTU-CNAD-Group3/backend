@@ -1,6 +1,12 @@
 import express from 'express';
 
-import { assignIpController, createIpPoolController, releaseController, getAllIpController, getUsedIpController } from '#src/controllers/ip.controller.js';
+import {
+  assignIpController,
+  createIpPoolController,
+  releaseController,
+  getAllIpController,
+  getUsedIpController,
+} from '#src/controllers/ip.controller.js';
 
 const router = express.Router();
 

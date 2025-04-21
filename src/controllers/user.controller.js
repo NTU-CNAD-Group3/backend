@@ -15,7 +15,6 @@ export const addServerController = async (req, res) => {
   }
 };
 
-
 export const deleteServerController = async (req, res) => {
   const { id } = req.body;
   if (!id) {
@@ -27,7 +26,7 @@ export const deleteServerController = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: `Can not realse IP` });
   }
-}
+};
 
 // TODO
 // getMaxEmpty()
