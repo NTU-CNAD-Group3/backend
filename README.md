@@ -18,11 +18,9 @@ The Backend service contains the primary logic of the application. It is respons
 ## 尚缺的功能
 
 * server 在rack位置控管
-* IP 用盡擴充
 * 與gateway接口
 * Unit test
-* 監控是否IP用盡、空間用盡
-* 以關鍵字查詢server、service
+* 監控是否空間用盡
 
 ## Prerequisites
 
