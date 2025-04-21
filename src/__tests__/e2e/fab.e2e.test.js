@@ -1,6 +1,6 @@
 import request from 'supertest';
 import dotenv from 'dotenv';
-import { app, server } from '../../index.js'; // ✅ 匯入 server 來關閉
+import { app, server } from '../../index.js';
 import { jest } from '@jest/globals';
 import { databaseClose } from '#src/models/db.js';
 

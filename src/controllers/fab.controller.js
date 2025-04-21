@@ -9,6 +9,7 @@ export const getFabDetailsController = async (req, res) => {
   }
   try {
     const fabDetails = await getFabDetails(name);
+    console.log(fabDetails);
     res.status(200).json(fabDetails.rows);
   } catch (error) {
     res.status(500).json({ error: `Can not get fab details` });

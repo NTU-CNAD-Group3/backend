@@ -159,7 +159,7 @@ const config = {
   testMatch: [
     '<rootDir>/src/__tests__/*.test.[jt]s?(x)',
     '<rootDir>/src/__tests__/e2e/*.test.[jt]s?(x)',
-    '<rootDir>/src/__tests__/src/*.test.[jt]s?(x)',
+    '<rootDir>/src/__tests__/unit/*.test.[jt]s?(x)',
   ],
 
 
