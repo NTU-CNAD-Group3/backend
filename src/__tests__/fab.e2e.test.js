@@ -1,8 +1,17 @@
 // require axios
 const axios = require('axios');
+// require dotenv
+const dotenv = require('dotenv');
+// load env variables
+dotenv.config();
+// set default env variables
+process.env.PORT = process.env.PORT || 8000;
 
-const admin = 'http://localhost:8000/api/admin';
-const user = 'http://localhost:8000/api/user';
+// read env variables
+const admin = `http://localhost:${process.env.PORT}/api/admin`;
+const user = `http://localhost:${process.env.PORT}/api/user`;
+// const admin = 'http://localhost:8000/api/admin';
+// const user = 'http://localhost:8000/api/user';
 
 describe('Fab full life‑cycle', () => {
   // Jest 預設 5s 可能不夠，拉長一點
