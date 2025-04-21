@@ -4,7 +4,7 @@ import { addServerController, deleteServerController } from '#src/controllers/us
 
 const router = express.Router();
 
-router.post('/', addServerController); // Create a server
-router.delete('/', deleteServerController); // Delete a server
+router.post('/addServer', addServerController); // Create a server
+router.delete('/deleteServer', deleteServerController); // Delete a server
 
 export default router;
