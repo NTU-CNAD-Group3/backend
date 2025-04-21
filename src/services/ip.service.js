@@ -10,31 +10,32 @@ class IpServices {
       await client.query('BEGIN');
       const result = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND service = $2`, [fabId, service]);
       let poolData;
-      if (result.rows.length === 0) {
-        // 沒找到則創建
-        poolData = await this.createIpPool(fabId, service);
+      let ip;
+      for (let i = 0; i < result.rows.length; i++) {
+        poolData = result.rows[i];
+        ip = await ipUtils.getAvailableIp(poolData.cidr, poolData.usedIps);
+        if (ip) {
+          break;
+        }
       }
-      else{
-        poolData = result.rows[0];
-      }
-      
-      const usedIps = poolData.usedIps || [];
-      const cidr = poolData.cidr;
 
-      const ip = await ipUtils.getAvailableIp(cidr, usedIps);
       if (!ip) {
-        throw new Error('No available IP in the pool');
-        // 未來增加擴充機能
+        poolData = await this.createIpPool(fabId, service);
+        ip = await ipUtils.getAvailableIp(poolData.cidr, poolData.usedIps);
       }
+
+      const usedIps = poolData.usedips || [];
+      const ipPoolId = poolData.id;
+
       console.log(ip);
       usedIps.push(ip);
-      await client.query(`UPDATE ipPools SET usedIps = $1 WHERE fabId = $2`, [usedIps, fabId]);
+      await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2 RETURNING *`, [usedIps, ipPoolId]);
       await client.query('COMMIT');
       logger.info({
         message: `Assigned IP ${ip} to service=${service} in fabId=${fabId}`,
       });
 
-      return ip;
+      return [ ip, ipPoolId ];
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error({
@@ -83,6 +84,84 @@ class IpServices {
       client.release();
     }
   }
+
+  async release(id) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      let serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
+      if (serverResult.rows.length === 0) {
+        throw new Error(`Server not found`);
+      }
+      const serverData = serverResult.rows[0];
+      const ipPoolId = serverData.ippoolid;
+      let ipPoolsResult = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND id = $2`, [serverData.fabid, ipPoolId]);
+      if (ipPoolsResult.rows.length === 0) {
+        throw new Error('No IP pool found for the given fabId');
+      }
+      
+      const ip = serverData.ip;
+      const poolData = ipPoolsResult.rows[0];
+      const usedIps = poolData.usedips || [];
+
+      const index = usedIps.indexOf(ip);
+      if (index !== -1) {
+        usedIps.splice(index, 1);
+      }
+      await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
+      await client.query('COMMIT');
+      logger.info({
+        message: `Released IP ${ip} from server=${serverData.name} in fabId=${serverData.fabid}`,
+      });
+
+      return ip;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({
+        message: `Error releasing IP : ${error.message}`,
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getAllIp(service) {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
+      if (result.rows.length === 0) {
+        throw new Error(`No IP pool found for service=${service}`);
+      }
+
+      const cidr = result.rows[0].cidr;
+      const allIps = await ipUtils.getAllIP(cidr);
+      return allIps;
+    } catch (error) {
+      logger.error({
+        message: `Error getting all IPs for service=${service}: ${error.message}`,
+      });
+      throw error;
+    }
+  }
+
+  async getUsedIp(service) {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
+      if (result.rows.length === 0) {
+        throw new Error(`No IP pool found for service=${service}`);
+      }
+
+      const usedIps = result.rows[0].usedips || [];
+      console.log(usedIps)
+      return usedIps;
+    } catch (error) {
+      logger.error({
+        message: `Error getting used IPs for service=${service}: ${error.message}`,
+      });
+      throw error;
+    }
+  }
+
 }
 const ipService = new IpServices();
 

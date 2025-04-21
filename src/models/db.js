@@ -75,13 +75,15 @@ const createServerTableText = `
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
     rackId                  INTEGER       NOT NULL CHECK (rackId >= 1),
+    ipPoolId                INTEGER       NOT NULL CHECK (ipPoolId >= 1),
     frontPosition           INTEGER       NOT NULL,
     backPosition            INTEGER       NOT NULL,
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
     FOREIGN KEY (roomId)    REFERENCES    rooms(id) ON DELETE CASCADE,
-    FOREIGN KEY (rackId)    REFERENCES    racks(id) ON DELETE CASCADE
+    FOREIGN KEY (rackId)    REFERENCES    racks(id) ON DELETE CASCADE,
+    FOREIGN KEY (ipPoolId)  REFERENCES    ipPools(id) ON DELETE CASCADE
   );
   CREATE UNIQUE INDEX IF NOT EXISTS servers_name_index ON servers USING btree (name);
 `;
@@ -96,8 +98,8 @@ export const databaseConnection = async () => {
     await pool.query(createFabTableText);
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
-    await pool.query(createServerTableText);
     await pool.query(createIpTableText);
+    await pool.query(createServerTableText);
 
     logger.info({
       message: `msg=Database connected`,
@@ -115,8 +117,8 @@ export const databaseRecreation = async () => {
     await pool.query(createFabTableText);
     await pool.query(createRoomTableText);
     await pool.query(createRackTableText);
-    await pool.query(createServerTableText);
     await pool.query(createIpTableText);
+    await pool.query(createServerTableText);
 
     logger.info({
       message: `msg=Database recreated`,
