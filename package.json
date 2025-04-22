@@ -9,8 +9,8 @@
     "lint": "eslint ./src/**/*.js --fix",
     "format": "prettier --write ./**/*.{js,json}",
     "start:admin": "cross-env NODE_ENV=test node src/index.js",
-    "start:user" : "cross-env NODE_ENV=test node src/index.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false --testPathPattern=src/__tests__",
+    "start:user": "cross-env NODE_ENV=test node src/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false --testPathPattern=src/__tests__/unit",
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js -w=1 --forceExit --detectOpenHandles --watchAll=false --testPathPattern=src/__tests__/e2e",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js -w=1 --forceExit --detectOpenHandles --watchAll=false --testPathPattern=src/__tests__/unit"
   },
