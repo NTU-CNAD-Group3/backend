@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, hhhh1300]
   pull_request:
     branches: [main]
 
@@ -51,15 +51,18 @@ jobs:
 
       - run: npm ci
 
-      - name: Start admin & user API
-        run: |
-          npm run start&
+      # - name: Start admin & user API
+      #   run: |
+      #     npm run start&
 
-      - name: Wait for ports 8000
-        run: npx wait-on tcp:8000
+      # - name: Wait for ports 8000
+      #   run: npx wait-on tcp:8000
 
-      - name: Run Jest tests
+      - name: Run Jest e2e tests
         run: npm run test:e2e
+
+      - name: Run Jest unit tests
+        run: npm run test:unit
 
       - name: Stop background servers
         if: always()

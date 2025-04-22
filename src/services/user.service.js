@@ -16,7 +16,18 @@ class UserServices {
       const frontPosition = 0;
       const backPosition = 0;
 
-      const server = await serverService.createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition);
+      const server = await serverService.createServer(
+        name,
+        service,
+        ip,
+        unit,
+        fabId,
+        roomId,
+        rackId,
+        ipPoolId,
+        frontPosition,
+        backPosition,
+      );
       await client.query('COMMIT');
       logger.info({
         message: `msg=Server ${name} created`,
@@ -54,7 +65,6 @@ class UserServices {
       client.release();
     }
   }
-
 }
 const userService = new UserServices();
 

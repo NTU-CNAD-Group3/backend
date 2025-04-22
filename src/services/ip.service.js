@@ -35,7 +35,7 @@ class IpServices {
         message: `Assigned IP ${ip} to service=${service} in fabId=${fabId}`,
       });
 
-      return [ ip, ipPoolId ];
+      return [ip, ipPoolId];
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error({
@@ -89,17 +89,17 @@ class IpServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      let serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
+      const serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
       if (serverResult.rows.length === 0) {
         throw new Error(`Server not found`);
       }
       const serverData = serverResult.rows[0];
       const ipPoolId = serverData.ippoolid;
-      let ipPoolsResult = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND id = $2`, [serverData.fabid, ipPoolId]);
+      const ipPoolsResult = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND id = $2`, [serverData.fabid, ipPoolId]);
       if (ipPoolsResult.rows.length === 0) {
         throw new Error('No IP pool found for the given fabId');
       }
-      
+
       const ip = serverData.ip;
       const poolData = ipPoolsResult.rows[0];
       const usedIps = poolData.usedips || [];
@@ -152,7 +152,7 @@ class IpServices {
       }
 
       const usedIps = result.rows[0].usedips || [];
-      console.log(usedIps)
+      console.log(usedIps);
       return usedIps;
     } catch (error) {
       logger.error({
@@ -161,7 +161,6 @@ class IpServices {
       throw error;
     }
   }
-
 }
 const ipService = new IpServices();
 
