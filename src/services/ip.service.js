@@ -2,13 +2,13 @@ import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 import ipUtils from '#src/utils/ip.util.js';
 class IpServices {
-  async assign(fabId, service) {
+  async assign(service) {
     // 有server加入
     const client = await pool.connect();
     try {
       // 找對應 IP pool
       await client.query('BEGIN');
-      const result = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND service = $2`, [fabId, service]);
+      const result = await client.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
       let poolData;
       let ip;
       for (let i = 0; i < result.rows.length; i++) {
@@ -19,11 +19,6 @@ class IpServices {
         }
       }
 
-      if (!ip) {
-        poolData = await this.createIpPool(fabId, service);
-        ip = await ipUtils.getAvailableIp(poolData.cidr, poolData.usedIps);
-      }
-
       const usedIps = poolData.usedips || [];
       const ipPoolId = poolData.id;
 
@@ -32,10 +27,10 @@ class IpServices {
       await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2 RETURNING *`, [usedIps, ipPoolId]);
       await client.query('COMMIT');
       logger.info({
-        message: `Assigned IP ${ip} to service=${service} in fabId=${fabId}`,
+        message: `Assigned IP ${ip} to service=${service}`,
       });
 
-      return [ ip, ipPoolId ];
+      return [ip, ipPoolId];
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error({
@@ -47,37 +42,26 @@ class IpServices {
     }
   }
 
-  async createIpPool(fabId, service) {
+  async createIpPool(service, cidrBlock) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const selectQuery = `SELECT cidr FROM ipPools WHERE fabId = $1`;
-      const result = await client.query(selectQuery, [fabId]);
 
-      // 目前是用最暴力的方法找最大，可能可以有更好的方法
-      const usedOffsets = result.rows.map((row) => {
-        const cidrParts = row.cidr.split('/');
-        const ipParts = cidrParts[0].split('.');
-        return parseInt(ipParts[2], 10);
-      });
-
-      const offset = usedOffsets.length ? Math.max(...usedOffsets) + 1 : 0;
-      const cidrBlock = `10.${fabId % 256}.${offset % 256}.0/24`;
       const insertQuery = `
-        INSERT INTO ipPools (fabId, service, cidr, usedIps) 
-        VALUES ($1, $2, $3, $4) 
+        INSERT INTO ipPools (service, cidr, usedIps) 
+        VALUES ($1, $2, $3) 
         RETURNING *`;
-      const insertResult = await client.query(insertQuery, [fabId, service, cidrBlock, []]);
+      const insertResult = await client.query(insertQuery, [service, cidrBlock, []]);
       await client.query('COMMIT');
       logger.info({
-        message: `IP pool created for fabId=${fabId}, service=${service}, cidr=${cidrBlock}`,
+        message: `IP pool created for service=${service}, cidr=${cidrBlock}`,
       });
 
       return insertResult.rows[0];
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error({
-        message: `Error creating IP pool for fabId=${fabId}, service=${service}: ${error.message}`,
+        message: `Error creating IP pool for service=${service}: ${error.message}`,
       });
       throw error;
     } finally {
@@ -89,17 +73,17 @@ class IpServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      let serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
+      const serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
       if (serverResult.rows.length === 0) {
         throw new Error(`Server not found`);
       }
       const serverData = serverResult.rows[0];
       const ipPoolId = serverData.ippoolid;
-      let ipPoolsResult = await client.query(`SELECT * FROM ipPools WHERE fabId = $1 AND id = $2`, [serverData.fabid, ipPoolId]);
+      const ipPoolsResult = await client.query(`SELECT * FROM ipPools WHERE id = $1`, [ipPoolId]);
       if (ipPoolsResult.rows.length === 0) {
-        throw new Error('No IP pool found for the given fabId');
+        throw new Error('No IP pool found for the given ipPoolId');
       }
-      
+
       const ip = serverData.ip;
       const poolData = ipPoolsResult.rows[0];
       const usedIps = poolData.usedips || [];
@@ -111,7 +95,7 @@ class IpServices {
       await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
       await client.query('COMMIT');
       logger.info({
-        message: `Released IP ${ip} from server=${serverData.name} in fabId=${serverData.fabid}`,
+        message: `Released IP ${ip} from server=${serverData.name}`,
       });
 
       return ip;
@@ -152,7 +136,7 @@ class IpServices {
       }
 
       const usedIps = result.rows[0].usedips || [];
-      console.log(usedIps)
+      console.log(usedIps);
       return usedIps;
     } catch (error) {
       logger.error({
@@ -161,7 +145,6 @@ class IpServices {
       throw error;
     }
   }
-
 }
 const ipService = new IpServices();
 

@@ -17,13 +17,11 @@ pool.on('error', () => {
 const createIpTableText = `
   CREATE TABLE IF NOT EXISTS ipPools (
     id                      SERIAL        PRIMARY KEY,
-    fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     service                 VARCHAR(255)  NOT NULL,
     cidr                    INET          NOT NULL,
     usedIps                 INET[]        ,
     createdAt               TIMESTAMPTZ   DEFAULT CURRENT_TIMESTAMP,
-    updatedAt               TIMESTAMPTZ   DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (fabId) REFERENCES fabs(id) ON DELETE CASCADE
+    updatedAt               TIMESTAMPTZ   DEFAULT CURRENT_TIMESTAMP
   ); 
 `;
 
@@ -129,4 +127,18 @@ export const databaseRecreation = async () => {
     });
   }
 };
-export default { pool, databaseConnection, databaseRecreation };
+
+export const databaseClose = async () => {
+  try {
+    await pool.end();
+    logger.info({
+      message: `msg=Database connection closed`,
+    });
+  } catch (error) {
+    logger.error({
+      message: `msg=Database connection close error error=${error}`,
+    });
+  }
+};
+
+export default { pool, databaseConnection, databaseRecreation, databaseClose };

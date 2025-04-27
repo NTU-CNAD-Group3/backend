@@ -1,6 +1,12 @@
 import express from 'express';
 
-import { createServerController, deleteServerController, updateServerController, getServerController, getAllServersController } from '#src/controllers/server.controller.js';
+import {
+  createServerController,
+  deleteServerController,
+  updateServerController,
+  getServerController,
+  getAllServersController,
+} from '#src/controllers/server.controller.js';
 
 const router = express.Router();
 

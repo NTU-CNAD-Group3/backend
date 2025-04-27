@@ -67,11 +67,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(config.PORT, async () => {
+const server = app.listen(config.PORT, async () => {
   await databaseConnection();
   logger.info({
     message: `msg=Server started at port ${config.PORT}`,
   });
 });
 
-export default app;
+export { app, server };

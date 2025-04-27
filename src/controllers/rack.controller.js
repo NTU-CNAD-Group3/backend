@@ -4,8 +4,8 @@ const { createRack, getMaxEmpty, deleteRack } = rackService;
 
 export const createRackController = async (req, res) => {
   const { name, service, fabId, roomId, height } = req.body;
-  if (!name || !service || !fabId || !roomId || !height) {
-    return res.status(400).json({ error: 'Name , service, fabId, roomId, and height are required' });
+  if (name == null || service == null || fabId == null || roomId == null || height == null) {
+    return res.status(400).json({ error: 'Name, service, fabId, roomId, and height are required' });
   }
   try {
     const rack = await createRack(name, service, fabId, roomId, height);
@@ -17,7 +17,7 @@ export const createRackController = async (req, res) => {
 
 export const getMaxEmptyController = async (req, res) => {
   const { id } = req.params;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Rack ID is required' });
   }
   try {
@@ -30,7 +30,7 @@ export const getMaxEmptyController = async (req, res) => {
 
 export const deleteRackController = async (req, res) => {
   const { id } = req.params;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Rack ID is required' });
   }
   try {

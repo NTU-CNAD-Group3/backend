@@ -4,19 +4,24 @@ import serverService from '#src/services/server.service.js';
 import ipService from '#src/services/ip.service.js';
 
 class UserServices {
-  async addServer(name, service, unit, fabId, roomId, rackId) {
+  async addServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const [ip, ipPoolId] = await ipService.assign(fabId, service);
+      const [ip, ipPoolId] = await ipService.assign(service);
 
-      // 假設一定有空間可以放，在前端展示時應該可以抓取rack的maxEmpty，不能放不能發請求
-      // TODO
-      // compute the position
-      const frontPosition = 0;
-      const backPosition = 0;
-
-      const server = await serverService.createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition);
+      const server = await serverService.createServer(
+        name,
+        service,
+        ip,
+        unit,
+        fabId,
+        roomId,
+        rackId,
+        ipPoolId,
+        frontPosition,
+        backPosition,
+      );
       await client.query('COMMIT');
       logger.info({
         message: `msg=Server ${name} created`,
@@ -37,9 +42,10 @@ class UserServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const server = await serverService.deleteServer(id);
 
       await ipService.release(id);
+      const server = await serverService.deleteServer(id);
+
       await client.query('COMMIT');
       logger.info({
         message: `msg=Server ${id} deleted`,
@@ -54,7 +60,6 @@ class UserServices {
       client.release();
     }
   }
-
 }
 const userService = new UserServices();
 

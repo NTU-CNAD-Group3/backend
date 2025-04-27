@@ -4,11 +4,12 @@ const { getFabDetails, getAllRooms, getAllFabs, getFab, createFab, updateFab, de
 
 export const getFabDetailsController = async (req, res) => {
   const { name } = req.query;
-  if (!name) {
+  if (name == null) {
     return res.status(400).json({ error: 'Name is required' });
   }
   try {
     const fabDetails = await getFabDetails(name);
+    console.log(fabDetails);
     res.status(200).json(fabDetails.rows);
   } catch (error) {
     res.status(500).json({ error: `Can not get fab details` });
@@ -17,7 +18,7 @@ export const getFabDetailsController = async (req, res) => {
 
 export const getAllRoomsController = async (req, res) => {
   const { id } = req.params;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Fab ID is required' });
   }
   try {
@@ -39,7 +40,7 @@ export const getAllFabsController = async (req, res) => {
 
 export const getFabController = async (req, res) => {
   const { id } = req.query;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Fab ID is required' });
   }
   try {
@@ -52,7 +53,7 @@ export const getFabController = async (req, res) => {
 
 export const createFabController = async (req, res) => {
   const { name, roomNum } = req.body;
-  if (!name || !roomNum) {
+  if (name == null || roomNum == null) {
     return res.status(400).json({ error: 'Name and roomNum are required' });
   }
   try {
@@ -65,7 +66,7 @@ export const createFabController = async (req, res) => {
 
 export const updateFabController = async (req, res) => {
   const { id, name, roomNum } = req.body;
-  if (!id || !name || !roomNum) {
+  if (id == null || name == null || roomNum == null) {
     return res.status(400).json({ error: 'ID, name and roomNum are required' });
   }
   try {
@@ -77,12 +78,12 @@ export const updateFabController = async (req, res) => {
 };
 
 export const deleteFabController = async (req, res) => {
-  const { id } = req.body;
-  if (!id) {
-    return res.status(400).json({ error: 'ID is required' });
+  const { name } = req.body;
+  if (name == null) {
+    return res.status(400).json({ error: 'Name is required' });
   }
   try {
-    const fab = await deleteFab(id);
+    const fab = await deleteFab(name);
     res.status(200).json(fab);
   } catch (error) {
     res.status(500).json({ error: `Can not delete fab` });

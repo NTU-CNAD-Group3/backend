@@ -3,12 +3,12 @@ import ipSerive from '#src/services/ip.service.js';
 const { assign, createIpPool, release, getAllIp, getUsedIp } = ipSerive;
 
 export const assignIpController = async (req, res) => {
-  const { fabId, service } = req.body;
-  if (!fabId || !service) {
-    return res.status(400).json({ error: 'fabId, service are required' });
+  const { service } = req.body;
+  if (service == null) {
+    return res.status(400).json({ error: 'service are required' });
   }
   try {
-    const assignedIp = await assign(fabId, service);
+    const assignedIp = await assign(service);
     res.status(201).json(assignedIp);
   } catch (error) {
     res.status(500).json({ error: `Can not assign IP` });
@@ -16,12 +16,12 @@ export const assignIpController = async (req, res) => {
 };
 
 export const createIpPoolController = async (req, res) => {
-  const { fabId, service } = req.body;
-  if (!fabId || !service) {
-    return res.status(400).json({ error: 'fabId, service are required' });
+  const { service, cidrBlock } = req.body;
+  if (service == null || cidrBlock == null) {
+    return res.status(400).json({ error: 'service, cidrBlock are required' });
   }
   try {
-    const ipPool = await createIpPool(fabId, service);
+    const ipPool = await createIpPool(service, cidrBlock);
     res.status(201).json(ipPool);
   } catch (error) {
     res.status(500).json({ error: `Can not create IP pool` });
@@ -30,7 +30,7 @@ export const createIpPoolController = async (req, res) => {
 
 export const releaseController = async (req, res) => {
   const { id } = req.body;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Server ID are required' });
   }
   try {
@@ -43,7 +43,7 @@ export const releaseController = async (req, res) => {
 
 export const getAllIpController = async (req, res) => {
   const { service } = req.body;
-  if (!service) {
+  if (service == null) {
     return res.status(400).json({ error: 'service are required' });
   }
   try {
@@ -56,7 +56,7 @@ export const getAllIpController = async (req, res) => {
 
 export const getUsedIpController = async (req, res) => {
   const { service } = req.body;
-  if (!service) {
+  if (service == null) {
     return res.status(400).json({ error: 'service are required' });
   }
   try {
