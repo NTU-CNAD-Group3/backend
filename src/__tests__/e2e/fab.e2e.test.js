@@ -58,11 +58,13 @@ describe('Fab full life‑cycle (Supertest)', () => {
   test('使用者新增 Server', async () => {
     const payload = {
       name: 'Host 1',
-      roomId: 1,
-      fabId: 1,
-      rackId: 1,
       service: 'any',
       unit: 1,
+      fabId: 1,
+      roomId: 1,
+      rackId: 1,
+      frontPosition: 0,
+      backPosition: 1,
     };
 
     await request(app).post(`${user}/addServer`).send(payload).expect(201);
