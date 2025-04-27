@@ -1,6 +1,6 @@
 import userService from '#src/services/user.service.js';
 
-const { addServer, deleteServer } = userService;
+const { addServer, deleteServer, createIpPool } = userService;
 
 export const addServerController = async (req, res) => {
   const { name, service, unit, fabId, roomId, rackId, frontPosition, backPosition } = req.body;
@@ -37,5 +37,15 @@ export const deleteServerController = async (req, res) => {
   }
 };
 
-// TODO
-// getMaxEmpty()
+export const createIpPoolController = async (req, res) => {
+  const { service, cidrBlock } = req.body;
+  if (service == null || cidrBlock == null) {
+    return res.status(400).json({ error: 'service, cidrBlock are required' });
+  }
+  try {
+    const ipPool = await createIpPool(service, cidrBlock);
+    res.status(201).json(ipPool);
+  } catch (error) {
+    res.status(500).json({ error: `Can not create IP pool` });
+  }
+};

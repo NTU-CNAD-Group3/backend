@@ -54,6 +54,6 @@ cp .env.development .env
 - `curl -X GET "http://localhost:8000/api/admin/clearDatabase"`
 - `curl -X POST http://localhost:8000/api/admin/createFab  -H "Content-Type: application/json" -d '{ "name":"Fab 1", "roomNum": 2, "rooms": [{"name":"Room 1","rackNum": 5, "height": 10},{"name": "Room 2", "rackNum": 3, "height": 8}]}'`
 - `curl -X POST http://localhost:8000/api/admin/addRack  -H "Content-Type: application/json" -d '{ "name":"Rack 1", "roomId": 1, "fabId": 1, "service": "any", "height": 8 }'`
-- `curl -X POST http://localhost:8000/api/ip/createIpPool -H "Content-Type: application/json" -d '{ "service": "any", "cidrBlock": "10.1.1.0/24" }'`
+- `curl -X POST http://localhost:8000/api/user/createIpPool -H "Content-Type: application/json" -d '{ "service": "any", "cidrBlock": "10.1.1.0/24" }'`
 - `curl -X POST http://localhost:8000/api/user/addServer  -H "Content-Type: application/json" -d '{ "name":"Host 1", "service": "any", "unit": 1, "fabId": 1, "roomId": 1,"rackId": 1, "frontPosition":0, "backPosition":1 }'`
 - `curl -X DELETE http://localhost:8000/api/user/deleteServer  -H "Content-Type: application/json" -d '{ "id": 1 }'`

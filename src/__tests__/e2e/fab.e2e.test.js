@@ -55,6 +55,15 @@ describe('Fab full life‑cycle (Supertest)', () => {
     expect(res.body[1].fabname).toBe('Fab 1');
   });
 
+  test('建立 IP Pool', async () => {
+    const payload = {
+      service: 'any',
+      cidrBlock: '10.0.1.0/24',
+    };
+
+    await request(app).post(`${user}/createIpPool`).send(payload).expect(201);
+  });
+
   test('使用者新增 Server', async () => {
     const payload = {
       name: 'Host 1',

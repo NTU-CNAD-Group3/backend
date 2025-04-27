@@ -60,6 +60,26 @@ class UserServices {
       client.release();
     }
   }
+
+  async createIpPool(service, cidrBlock) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const ipPool = await ipService.createIpPool(service, cidrBlock);
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=IP Pool ${cidrBlock} created`,
+      });
+      return ipPool;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({
+        message: `msg=IP Pool ${cidrBlock} created error=${error}`,
+      });
+    } finally {
+      client.release();
+    }
+  }
 }
 const userService = new UserServices();
 
