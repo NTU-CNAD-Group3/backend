@@ -2,7 +2,7 @@ import adminService from '#src/services/admin.service.js';
 
 async function watchFab(req, res) {
   const { name } = req.query;
-  if (!name) {
+  if (name == null) {
     return res.status(400).json({ error: 'Name is required' });
   }
   try {
@@ -15,7 +15,7 @@ async function watchFab(req, res) {
 
 async function createFab(req, res) {
   const { name, roomNum, rooms } = req.body;
-  if (!name || !roomNum || rooms.length === 0) {
+  if (name == null || roomNum == null || rooms.length === 0) {
     return res.status(400).json({ error: 'Name and rooms are required' });
   }
   try {
@@ -29,7 +29,7 @@ async function createFab(req, res) {
 
 async function addRack(req, res) {
   const { name, service, fabId, roomId, height } = req.body;
-  if (!name || !service || !fabId || !roomId || !height) {
+  if (name == null || service == null || fabId == null || roomId == null || height == null) {
     return res.status(400).json({ error: 'Name , service, fabId, roomId, and height are required' });
   }
   try {

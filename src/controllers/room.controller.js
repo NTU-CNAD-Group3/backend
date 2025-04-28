@@ -4,7 +4,7 @@ const { createRoom, getHasRack, getRackNum, updateRoom } = roomService;
 
 export const createRoomController = async (req, res) => {
   const { name, rackNum, fabId, height } = req.body;
-  if (!name || !rackNum || !fabId || !height) {
+  if (name == null || rackNum == null || fabId == null || height == null) {
     return res.status(400).json({ error: 'name, rackNum, fabId and height are required' });
   }
   try {
@@ -17,7 +17,7 @@ export const createRoomController = async (req, res) => {
 
 export const getHasRackController = async (req, res) => {
   const { id } = req.params;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Room ID is required' });
   }
   try {
@@ -30,7 +30,7 @@ export const getHasRackController = async (req, res) => {
 
 export const getRackNumController = async (req, res) => {
   const { id } = req.params;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Room ID is required' });
   }
   try {
@@ -43,7 +43,7 @@ export const getRackNumController = async (req, res) => {
 
 export const updateRoomController = async (req, res) => {
   const { id, hasRack } = req.body;
-  if (!id || hasRack === undefined) {
+  if (id == null || hasRack == null) {
     return res.status(400).json({ error: 'id and hasRack are required' });
   }
   try {

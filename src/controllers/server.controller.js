@@ -4,7 +4,18 @@ const { createServer, deleteServer, updateServer, getServer, getAllServers } = s
 
 export const createServerController = async (req, res) => {
   const { name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition } = req.body;
-  if (!name || !service || !ip || !unit || !fabId || !roomId || !rackId || !ipPoolId || !frontPosition || !backPosition) {
+  if (
+    name == null ||
+    service == null ||
+    ip == null ||
+    unit == null ||
+    fabId == null ||
+    roomId == null ||
+    rackId == null ||
+    ipPoolId == null ||
+    frontPosition == null ||
+    backPosition == null
+  ) {
     return res
       .status(400)
       .json({ error: 'name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition are required' });
@@ -19,7 +30,7 @@ export const createServerController = async (req, res) => {
 
 export const deleteServerController = async (req, res) => {
   const { id } = req.body;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Server ID are required' });
   }
   try {
@@ -32,7 +43,19 @@ export const deleteServerController = async (req, res) => {
 
 export const updateServerController = async (req, res) => {
   const { id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition } = req.body;
-  if (!id || !name || !service || !ip || !unit || !fabId || !roomId || !rackId || !ipPoolId || !frontPosition || !backPosition) {
+  if (
+    id == null ||
+    name == null ||
+    service == null ||
+    ip == null ||
+    unit == null ||
+    fabId == null ||
+    roomId == null ||
+    rackId == null ||
+    ipPoolId == null ||
+    frontPosition == null ||
+    backPosition == null
+  ) {
     return res
       .status(400)
       .json({ error: 'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition are required' });
@@ -47,7 +70,7 @@ export const updateServerController = async (req, res) => {
 
 export const getServerController = async (req, res) => {
   const { id } = req.body;
-  if (!id) {
+  if (id == null) {
     return res.status(400).json({ error: 'Server ID are required' });
   }
   try {
