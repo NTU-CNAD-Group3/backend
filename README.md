@@ -4,20 +4,13 @@
 
 The Backend service contains the primary logic of the application. It is responsible for handling fab, rack, and server management. 
 
-## 已有
+### 4/30 更新身分驗證可以測看看
+### 我先把admin user那code註解掉了
 
-* 取得DC(Fab)裡所有物件
-* 建立Fab、room、rack、server
-* IP pool
-
-## 可以快速做的但還沒做功能
-
-* 刪除、更新各種資料的api
-* 找查資料的api
-
-## 尚缺的功能
-
-* 與gateway接口
+## 剩下要做的
+* 整理一下目前架構(跟前端對好有甚麼功能)
+* IP 是否衝突
+* gateway
 * Unit test
 
 ## Prerequisites
@@ -38,7 +31,11 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
-## API
+## API 
+- POST `/api/fab/`
+- GET `/api/fab/?id=1`
+
+<!-- ## API
 
 
 - `/api/admin/watchFab?name=Fab`: Print the Fab information
@@ -56,4 +53,4 @@ cp .env.development .env
 - `curl -X POST http://localhost:8000/api/admin/addRack  -H "Content-Type: application/json" -d '{ "name":"Rack 1", "roomId": 1, "fabId": 1, "service": "any", "height": 8 }'`
 - `curl -X POST http://localhost:8000/api/user/createIpPool -H "Content-Type: application/json" -d '{ "service": "any", "cidrBlock": "10.1.1.0/24" }'`
 - `curl -X POST http://localhost:8000/api/user/addServer  -H "Content-Type: application/json" -d '{ "name":"Host 1", "service": "any", "unit": 1, "fabId": 1, "roomId": 1,"rackId": 1, "frontPosition":0, "backPosition":1 }'`
-- `curl -X DELETE http://localhost:8000/api/user/deleteServer  -H "Content-Type: application/json" -d '{ "id": 1 }'`
+- `curl -X DELETE http://localhost:8000/api/user/deleteServer  -H "Content-Type: application/json" -d '{ "id": 1 }'` -->

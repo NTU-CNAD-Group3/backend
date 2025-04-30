@@ -1,5 +1,6 @@
 import express from 'express';
-
+import { authorize } from '#src/middleware/authorize.js';
+import { authenticateToken } from '#src/middleware/authenticate.js';
 import {
   getFabDetailsController,
   getAllRoomsController,
@@ -12,12 +13,12 @@ import {
 
 const router = express.Router();
 
-router.get('/details', getFabDetailsController);
-router.get('/rooms/:id', getAllRoomsController);
-router.get('/allFabs', getAllFabsController);
-router.get('/', getFabController);
-router.post('/', createFabController);
-router.put('/', updateFabController);
-router.delete('/', deleteFabController);
+router.get('/details', authenticateToken, authorize(['user', 'admin']), getFabDetailsController);
+router.get('/rooms/:id', authenticateToken, authorize(['user', 'admin']), getAllRoomsController);
+router.get('/allFabs', authenticateToken, authorize(['user', 'admin']), getAllFabsController);
+router.get('/', authenticateToken, authorize(['user', 'admin']), getFabController);
+router.post('/', authenticateToken, authorize(['admin']), createFabController);
+router.put('/', authenticateToken, authorize(['admin']), updateFabController);
+router.delete('/', authenticateToken, authorize(['admin']), deleteFabController);
 
 export default router;
