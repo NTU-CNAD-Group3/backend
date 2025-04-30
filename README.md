@@ -4,20 +4,10 @@
 
 The Backend service contains the primary logic of the application. It is responsible for handling fab, rack, and server management. 
 
-## 已有
-
-* 取得DC(Fab)裡所有物件
-* 建立Fab、room、rack、server
-* IP pool
-
-## 可以快速做的但還沒做功能
-
-* 刪除、更新各種資料的api
-* 找查資料的api
-
-## 尚缺的功能
-
-* 與gateway接口
+## 剩下要做的
+* 整理一下目前架構(包含Route、身分驗證)
+* IP 是否衝突
+* gateway
 * Unit test
 
 ## Prerequisites
