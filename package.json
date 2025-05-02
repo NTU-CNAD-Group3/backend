@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "axios": "^1.8.4",
-    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-prettier": "^9",
     "eslint-config-standard": "^17",
