@@ -1,5 +1,4 @@
 import fabService from '#src/services/fab.service.js';
-
 const { getFabDetails, getAllRooms, getAllFabs, getFab, createFab, updateFab, deleteFab } = fabService;
 
 export const getFabDetailsController = async (req, res) => {
@@ -41,26 +40,38 @@ export const getAllFabsController = async (req, res) => {
 export const getFabController = async (req, res) => {
   const { id } = req.query;
   if (id == null) {
-    return res.status(400).json({ error: 'Fab ID is required' });
+    return res.status(400).json({ message: 'Fab ID is required' });
   }
   try {
     const fab = await getFab(id);
-    res.status(200).json(fab);
+    const data={
+      id:fab.id,
+      name:fab.name,
+      roomNum:fab.roomnum,
+      create_time:fab.createat
+    }
+    res.status(200).json({message:`Get success`, content: data});
   } catch (error) {
-    res.status(500).json({ error: `Can not get fab` });
+    res.status(500).json({ message: `Can not get fab` });
   }
 };
 
 export const createFabController = async (req, res) => {
   const { name, roomNum } = req.body;
   if (name == null || roomNum == null) {
-    return res.status(400).json({ error: 'Name and roomNum are required' });
+    return res.status(400).json({ message: 'Name and roomNum are required' });
   }
   try {
     const fab = await createFab(name, roomNum);
-    res.status(201).json(fab);
+    const data={
+      id:fab.id,
+      name:fab.name,
+      roomNum:fab.roomnum,
+      create_time:fab.createat
+    }
+    res.status(201).json({message:`Create success`, content: data});
   } catch (error) {
-    res.status(500).json({ error: `Can not create fab` });
+    res.status(500).json({ message: `Can not create fab` });
   }
 };
 
