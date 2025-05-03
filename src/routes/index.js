@@ -1,7 +1,7 @@
 import express from 'express';
 
-import AdminRoutes from '#src/routes/admin.js';
-import UserRoutes from '#src/routes/user.js';
+import AdminRoutes from '#src/routes/admin.route.js';
+import UserRoutes from '#src/routes/user.route.js';
 import FabRoutes from '#src/routes/fab.route.js';
 import IpRoutes from '#src/routes/ip.route.js';
 import RoomRoutes from '#src/routes/room.route.js';

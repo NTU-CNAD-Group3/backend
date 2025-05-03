@@ -47,6 +47,15 @@ class IpServices {
     try {
       await client.query('BEGIN');
 
+      const existingPools = await client.query(`SELECT cidr FROM ipPools`);
+      const overlappingPool = existingPools.rows.find(row =>
+        ipUtils.isOverlap(row.cidr, cidrBlock)
+      );
+
+      if (overlappingPool) {
+        throw new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
+      }
+
       const insertQuery = `
         INSERT INTO ipPools (service, cidr, usedIps) 
         VALUES ($1, $2, $3) 

@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -72,4 +72,11 @@ jobs:
   sonarqube:
     needs: [lint, test]
     uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/sonarqube-ci.yaml@main
+    secrets: inherit
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: NTU-CNAD-Group3/cicd-workflows/.github/workflows/service-cd.yaml@main
+    with:
+      service: backend
     secrets: inherit

@@ -39,7 +39,7 @@ class FabServices {
 
   async getAllRooms(id) {
     try {
-      const result = await pool.query('SELECT * FROM Rooms WHERE fabId = $1', [id]);
+      const result = await pool.query('SELECT * FROM rooms WHERE fabId = $1', [id]);
       logger.info({
         message: `msg=AllRooms get`,
       });

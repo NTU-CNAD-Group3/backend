@@ -35,7 +35,7 @@ export const deleteServerController = async (req, res) => {
   }
   try {
     const deletedServer = await deleteServer(id);
-    res.status(201).json(deletedServer);
+    res.status(200).json(deletedServer);
   } catch (error) {
     res.status(500).json({ error: `Can not delete server` });
   }
@@ -62,7 +62,7 @@ export const updateServerController = async (req, res) => {
   }
   try {
     const updatedServer = await updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition);
-    res.status(201).json(updatedServer);
+    res.status(200).json(updatedServer);
   } catch (error) {
     res.status(500).json({ error: `Can not update server` });
   }
@@ -75,7 +75,7 @@ export const getServerController = async (req, res) => {
   }
   try {
     const server = await getServer(id);
-    res.status(201).json(server);
+    res.status(200).json(server);
   } catch (error) {
     res.status(500).json({ error: `Can not get server` });
   }
@@ -84,7 +84,7 @@ export const getServerController = async (req, res) => {
 export const getAllServersController = async (req, res) => {
   try {
     const servers = await getAllServers();
-    res.status(201).json(servers);
+    res.status(200).json(servers);
   } catch (error) {
     res.status(500).json({ error: `Can not get all servers` });
   }

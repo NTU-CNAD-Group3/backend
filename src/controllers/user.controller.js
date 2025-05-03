@@ -31,7 +31,7 @@ export const deleteServerController = async (req, res) => {
   }
   try {
     const releasedIP = await deleteServer(id);
-    res.status(201).json(releasedIP);
+    res.status(200).json(releasedIP);
   } catch (error) {
     res.status(500).json({ error: `Can not realse IP` });
   }

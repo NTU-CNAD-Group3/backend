@@ -27,11 +27,11 @@
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
     "ip-cidr": "^4.0.2",
+    "netmask": "^2.0.2",
     "pg": "^8.14.1"
   },
   "devDependencies": {
     "axios": "^1.8.4",
-    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-prettier": "^9",
     "eslint-config-standard": "^17",

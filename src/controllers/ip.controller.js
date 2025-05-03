@@ -35,7 +35,7 @@ export const releaseController = async (req, res) => {
   }
   try {
     const releasedIP = await release(id);
-    res.status(201).json(releasedIP);
+    res.status(200).json(releasedIP);
   } catch (error) {
     res.status(500).json({ error: `Can not realse IP` });
   }
@@ -48,7 +48,7 @@ export const getAllIpController = async (req, res) => {
   }
   try {
     const allIPs = await getAllIp(service);
-    res.status(201).json(allIPs);
+    res.status(200).json(allIPs);
   } catch (error) {
     res.status(500).json({ error: `Can not get all IP` });
   }
@@ -61,7 +61,7 @@ export const getUsedIpController = async (req, res) => {
   }
   try {
     const usedIPs = await getUsedIp(service);
-    res.status(201).json(usedIPs);
+    res.status(200).json(usedIPs);
   } catch (error) {
     res.status(500).json({ error: `Can not get used IP` });
   }
