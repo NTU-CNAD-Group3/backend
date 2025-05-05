@@ -86,7 +86,7 @@ describe('Fab Service – Unit Tests', () => {
       const result = await fabService.getAllRooms(mockFabId);
 
       expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM Rooms WHERE fabId = $1', [mockFabId]);
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM rooms WHERE fabId = $1', [mockFabId]);
       expect(result).toEqual(mockDbResult.rows); // Service returns rows directly
       expect(logger.info).toHaveBeenCalledTimes(1);
       expect(logger.info).toHaveBeenCalledWith({ message: `msg=AllRooms get` });
@@ -101,7 +101,7 @@ describe('Fab Service – Unit Tests', () => {
       const result = await fabService.getAllRooms(mockFabId);
 
       expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM Rooms WHERE fabId = $1', [mockFabId]);
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM rooms WHERE fabId = $1', [mockFabId]);
       expect(result).toBeUndefined();
       expect(logger.info).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledTimes(1);
