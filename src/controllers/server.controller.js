@@ -42,7 +42,7 @@ export const deleteServerController = async (req, res) => {
 };
 
 export const updateServerController = async (req, res) => {
-  const { id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition } = req.body;
+  const { id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy } = req.body;
   if (
     id == null ||
     name == null ||
@@ -54,14 +54,28 @@ export const updateServerController = async (req, res) => {
     rackId == null ||
     ipPoolId == null ||
     frontPosition == null ||
-    backPosition == null
+    backPosition == null ||
+    healthy == null
   ) {
     return res
       .status(400)
-      .json({ error: 'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition are required' });
+      .json({ error: 'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required' });
   }
   try {
-    const updatedServer = await updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition);
+    const updatedServer = await updateServer(
+      id,
+      name,
+      service,
+      ip,
+      unit,
+      fabId,
+      roomId,
+      rackId,
+      ipPoolId,
+      frontPosition,
+      backPosition,
+      healthy,
+    );
     res.status(201).json(updatedServer);
   } catch (error) {
     res.status(500).json({ error: `Can not update server` });

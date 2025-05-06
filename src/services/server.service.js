@@ -38,11 +38,11 @@ class ServerServices {
     }
   }
 
-  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) {
+  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy) {
     try {
       const result = await pool.query(
-        'UPDATE servers SET name = $1, service = $2, ip = $3, unit = $4, fabId = $5, roomId = $6, rackId = $7, ipPoolId = $8, frontPosition = $9, backPosition = $10 WHERE id = $11 RETURNING *',
-        [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, id],
+        'UPDATE servers SET name = $1, service = $2, ip = $3, unit = $4, fabId = $5, roomId = $6, rackId = $7, ipPoolId = $8, frontPosition = $9, backPosition = $10, healthy = $11 WHERE id = $12 RETURNING *',
+        [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy, id],
       );
       logger.info({
         message: `msg=Server ${id} updated`,
