@@ -37,5 +37,5 @@ cp .env.development .env
 |             /api/fab              |  PUT   |  Update fab with id,name,roomNum |
 |             /api/fab              | DELETE |      delete fab with name        |
 |             /api/fab              |  GET   |      get fab details with id     |
-|             /api/allFabs          |  GET   |      get visual information      |
+|            /api/fab/allFabs       |  GET   |      get visual information      |
 
