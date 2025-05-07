@@ -29,7 +29,7 @@ const createFabTableText = `
   CREATE TABLE IF NOT EXISTS fabs (
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL UNIQUE,
-    roomNum                 INTEGER       NOT NULL CHECK (roomNum >= 1),
+    roomNum                 INTEGER       NOT NULL CHECK (roomNum >= 0),
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   );
@@ -40,7 +40,7 @@ const createRoomTableText = `
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL,
     hasRack                 INTEGER       DEFAULT 0,
-    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
+    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 0),
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     height                  INTEGER       NOT NULL CHECK (height >= 1),
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
