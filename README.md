@@ -28,22 +28,14 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
-## API
+## Endpoints
 
+|             Endpoint              | Method |           Description            |
+|:---------------------------------:|:------:|:--------------------------------:|
+|           /api/healthy            |  Get   | Check if the service is running. |
+|             /api/fab              |  POST  |      create fab with name        |
+|             /api/fab              |  PUT   |  Update fab with id,name,roomNum |
+|             /api/fab              | DELETE |      delete fab with name        |
+|             /api/fab              |  GET   |      get fab details with id     |
+|             /api/allFabs          |  GET   |      get visual information      |
 
-- `/api/admin/watchFab?name=Fab`: Print the Fab information
-- `/api/admin/createFab`: Create fab with rooms
-- `/api/admin/addRack`: Create rack in room 
-- `/api/admin/clearDatabase`: You can use this to recreate db to clear the data or if you do some changes of table definitions
-- `/api/user/addServer`: Add server and give ip to server
-
-### how to test 
-
-- `npm run test:e2e`
-- `curl -X GET "http://localhost:8000/api/admin/watchFab?name=Fab%201"`
-- `curl -X GET "http://localhost:8000/api/admin/clearDatabase"`
-- `curl -X POST http://localhost:8000/api/admin/createFab  -H "Content-Type: application/json" -d '{ "name":"Fab 1", "roomNum": 2, "rooms": [{"name":"Room 1","rackNum": 5, "height": 10},{"name": "Room 2", "rackNum": 3, "height": 8}]}'`
-- `curl -X POST http://localhost:8000/api/admin/addRack  -H "Content-Type: application/json" -d '{ "name":"Rack 1", "roomId": 1, "fabId": 1, "service": "any", "height": 8 }'`
-- `curl -X POST http://localhost:8000/api/user/createIpPool -H "Content-Type: application/json" -d '{ "service": "any", "cidrBlock": "10.1.1.0/24" }'`
-- `curl -X POST http://localhost:8000/api/user/addServer  -H "Content-Type: application/json" -d '{ "name":"Host 1", "service": "any", "unit": 1, "fabId": 1, "roomId": 1,"rackId": 1, "frontPosition":0, "backPosition":1 }'`
-- `curl -X DELETE http://localhost:8000/api/user/deleteServer  -H "Content-Type: application/json" -d '{ "id": 1 }'`
