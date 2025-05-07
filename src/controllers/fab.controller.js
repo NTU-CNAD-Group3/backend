@@ -34,7 +34,7 @@ export const getAllFabsController = async (req, res) => {
     const fabs = await getAllFabs();
     res.status(200).json({ data: fabs, message: 'OK' });
   } catch (e) {
-    const error = new Error('Unknown error');
+    const error = e;
     error.status = 500;
     throw error;
   }
@@ -51,24 +51,24 @@ export const getFabController = async (req, res) => {
     const fab = await getFab(id);
     res.status(200).json({ data: fab, message: 'OK' });
   } catch (e) {
-    const error = new Error('Unknown error');
+    const error = e;
     error.status = 500;
     throw error;
   }
 };
 
 export const createFabController = async (req, res) => {
-  const { name, roomNum } = req.body;
-  if (name == null || roomNum == null) {
-    const error = new Error('Name and roomNum are required');
+  const { name } = req.body;
+  if (name == null) {
+    const error = new Error('Name is required');
     error.status = 400;
     throw error;
   }
   try {
-    const id = await createFab(name, roomNum);
+    const id = await createFab(name);
     res.status(201).json({ data: id, message: 'Created' });
   } catch (e) {
-    const error = new Error('Unknown error');
+    const error = e;//new Error('Unknown error');
     error.status = 500;
     throw error;
   }
@@ -85,7 +85,7 @@ export const updateFabController = async (req, res) => {
     await updateFab(id, name, roomNum);
     res.status(200).json({ message: 'Updated' });
   } catch (e) {
-    const error = new Error('Unknown error');
+    const error = e;
     error.status = 500;
     throw error;
   }
@@ -102,7 +102,7 @@ export const deleteFabController = async (req, res) => {
     await deleteFab(name);
     res.status(200).json({ message: 'Deleted' });
   } catch (e) {
-    const error = new Error('Unknown error');
+    const error = e;
     error.status = 500;
     throw error;
   }

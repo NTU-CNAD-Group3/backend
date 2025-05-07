@@ -124,8 +124,8 @@ describe('Fab Service – Unit Tests', () => {
           server_id: 1000,
           server_name: 'ServerA',
           unit: 1,
-          position_front: true,
-          position_back: false,
+          frontposition: 0,
+          backposition: 1,
         },
       ];
   
@@ -153,8 +153,8 @@ describe('Fab Service – Unit Tests', () => {
                     server1000: {
                       name: 'ServerA',
                       unit: 1,
-                      position_front: true,
-                      position_back: false,
+                      position_front: 0,
+                      position_back: 1,
                     },
                   },
                 },
@@ -235,7 +235,7 @@ describe('Fab Service – Unit Tests', () => {
   // --- createFab ---
   describe('createFab', () => {
     const mockName = 'NewFab';
-    const mockRoomNum = 5;
+    const mockRoomNum = 0;
   
     it('should create a fab successfully and return the new fab', async () => {
       // Mock for SELECT EXISTS
@@ -244,7 +244,7 @@ describe('Fab Service – Unit Tests', () => {
       // Mock for INSERT query
       pool.query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Return new fab's ID
   
-      const result = await fabService.createFab(mockName, mockRoomNum);
+      const result = await fabService.createFab(mockName);
   
       expect(pool.query).toHaveBeenCalledTimes(2);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
