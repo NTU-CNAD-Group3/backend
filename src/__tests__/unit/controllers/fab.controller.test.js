@@ -158,7 +158,7 @@ describe('Fab Controller – Unit Tests', () => {
 
       expect(fabService.getAllFabs).toHaveBeenCalledTimes(1);
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith({ data:mockFabs, message: 'OK'});
+      expect(mockRes.json).toHaveBeenCalledWith({ data: mockFabs, message: 'OK' });
     });
     it('should throw 500 error if service fails', async () => {
       mockGetAllFabs.mockRejectedValue(new Error('Service failed'));
@@ -183,7 +183,7 @@ describe('Fab Controller – Unit Tests', () => {
       await expect(getFabController(mockReq, mockRes)).rejects.toThrow('Fab ID is required');
 
       expect(fabService.getFab).not.toHaveBeenCalled();
-      //expect(mockRes.status).toHaveBeenCalledWith(400);
+      // expect(mockRes.status).toHaveBeenCalledWith(400);
     });
 
     it('should call service and return fab on success', async () => {
@@ -197,7 +197,7 @@ describe('Fab Controller – Unit Tests', () => {
       expect(fabService.getFab).toHaveBeenCalledTimes(1);
       expect(fabService.getFab).toHaveBeenCalledWith(mockFabId);
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      //expect(mockRes.json).toHaveBeenCalledWith(mockFab);
+      // expect(mockRes.json).toHaveBeenCalledWith(mockFab);
     });
 
     it('should throw 500 error if service fails', async () => {
@@ -212,22 +212,22 @@ describe('Fab Controller – Unit Tests', () => {
   // --- createFabController ---
   describe('createFabController', () => {
     it('should return 400 if name is missing', async () => {
-      //await createFabController({ ...mockReq, body: { name: 'FabC' } }, mockRes); // Missing roomNum
-      await expect(createFabController({ ...mockReq, body: { } }, mockRes)).rejects.toThrow('Name is required');
-      //expect(mockRes.status).toHaveBeenCalledWith(400);
-      //expect(mockRes.json).toHaveBeenCalledWith({ error: 'Name and roomNum are required' });
+      // await createFabController({ ...mockReq, body: { name: 'FabC' } }, mockRes); // Missing roomNum
+      await expect(createFabController({ ...mockReq, body: {} }, mockRes)).rejects.toThrow('Name is required');
+      // expect(mockRes.status).toHaveBeenCalledWith(400);
+      // expect(mockRes.json).toHaveBeenCalledWith({ error: 'Name and roomNum are required' });
       expect(fabService.createFab).not.toHaveBeenCalled();
 
       jest.clearAllMocks(); // Reset for next check
 
-      //await createFabController({ ...mockReq, body: { roomNum: 5 } }, mockRes); // Missing name
-      //expect(mockRes.status).toHaveBeenCalledWith(400);
-      //expect(fabService.createFab).not.toHaveBeenCalled();
+      // await createFabController({ ...mockReq, body: { roomNum: 5 } }, mockRes); // Missing name
+      // expect(mockRes.status).toHaveBeenCalledWith(400);
+      // expect(fabService.createFab).not.toHaveBeenCalled();
     });
 
     it('should call service and return created fab on success', async () => {
       const mockName = 'FabC';
-      const mockCreatedFab = { id: 3};
+      const mockCreatedFab = { id: 3 };
       mockReq.body = { name: mockName };
       mockCreateFab.mockResolvedValue(mockCreatedFab);
 
@@ -251,23 +251,25 @@ describe('Fab Controller – Unit Tests', () => {
   describe('updateFabController', () => {
     it('should return 400 if id, name, or roomNum is missing', async () => {
       const baseBody = { id: 1, name: 'Updated', roomNum: 10 };
-      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes)).rejects.toThrow('ID, name and roomNum are required');
+      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes)).rejects.toThrow(
+        'ID, name and roomNum are required',
+      );
       // await updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes);
       // expect(mockRes.status).toHaveBeenCalledWith(400);
       // expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
       expect(fabService.updateFab).not.toHaveBeenCalled();
       jest.clearAllMocks();
 
-      //await updateFabController({ ...mockReq, body: { id: baseBody.id, roomNum: baseBody.roomNum } }, mockRes);
-      //expect(mockRes.status).toHaveBeenCalledWith(400);
-      //expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
-      //expect(fabService.updateFab).not.toHaveBeenCalled();
-      //jest.clearAllMocks();
+      // await updateFabController({ ...mockReq, body: { id: baseBody.id, roomNum: baseBody.roomNum } }, mockRes);
+      // expect(mockRes.status).toHaveBeenCalledWith(400);
+      // expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
+      // expect(fabService.updateFab).not.toHaveBeenCalled();
+      // jest.clearAllMocks();
 
-      //await updateFabController({ ...mockReq, body: { id: baseBody.id, name: baseBody.name } }, mockRes);
-      //expect(mockRes.status).toHaveBeenCalledWith(400);
-      //expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
-      //expect(fabService.updateFab).not.toHaveBeenCalled();
+      // await updateFabController({ ...mockReq, body: { id: baseBody.id, name: baseBody.name } }, mockRes);
+      // expect(mockRes.status).toHaveBeenCalledWith(400);
+      // expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
+      // expect(fabService.updateFab).not.toHaveBeenCalled();
     });
 
     it('should call service and return updated fab on success', async () => {

@@ -74,7 +74,7 @@ class FabServices {
     `;
     const { rows } = await pool.query(query, [id]);
     const result = {
-      id,
+      id: 0,
       name: '',
       roomNum: 0,
       createdAt: null,
@@ -84,6 +84,7 @@ class FabServices {
 
     for (const row of rows) {
       if (!result.name) {
+        result.id = row.dc_id;
         result.name = row.dc_name;
         result.createdAt = row.createdat;
         result.updatedAt = row.updatedat;

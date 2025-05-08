@@ -37,4 +37,8 @@ cp .env.development .env
 |             /api/fab              | DELETE |      delete fab with name        |
 |             /api/fab              |  GET   |      get fab details with id     |
 |            /api/fab/allFabs       |  GET   |      get visual information      |
+|             /api/rooms            |  POST  |create rooms with fname,num,array |
+|             /api/room             |  PUT   | Update room with id,name,rackNum |
+|             /api/room             | DELETE |      delete room with name,id    |
+|             /api/room             |  GET   |  get room details with name,id   |
 
