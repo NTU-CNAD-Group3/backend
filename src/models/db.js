@@ -29,7 +29,7 @@ const createFabTableText = `
   CREATE TABLE IF NOT EXISTS fabs (
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL UNIQUE,
-    roomNum                 INTEGER       NOT NULL CHECK (roomNum >= 1),
+    roomNum                 INTEGER       NOT NULL CHECK (roomNum >= 0) DEFAULT 0,
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   );
@@ -40,7 +40,7 @@ const createRoomTableText = `
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL,
     hasRack                 INTEGER       DEFAULT 0,
-    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 1),
+    rackNum                 INTEGER       NOT NULL CHECK (rackNum >= 0) DEFAULT 0,
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     height                  INTEGER       NOT NULL CHECK (height >= 1),
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -68,7 +68,7 @@ const createServerTableText = `
     id                      SERIAL        PRIMARY KEY,
     name                    VARCHAR(255)  NOT NULL UNIQUE,
     service                 VARCHAR(255)  NOT NULL,
-    ip                      INET          NOT NULL,
+    ip                      INET          NOT NULL UNIQUE,
     unit                    INTEGER       NOT NULL CHECK (unit >= 1),
     fabId                   INTEGER       NOT NULL CHECK (fabId >= 1),
     roomId                  INTEGER       NOT NULL CHECK (roomId >= 1),
@@ -76,6 +76,7 @@ const createServerTableText = `
     ipPoolId                INTEGER       NOT NULL CHECK (ipPoolId >= 1),
     frontPosition           INTEGER       NOT NULL,
     backPosition            INTEGER       NOT NULL,
+    healthy                 BOOLEAN       DEFAULT TRUE,
     createdAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updatedAt               TIMESTAMP     WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (fabId)     REFERENCES    fabs(id) ON DELETE CASCADE,
