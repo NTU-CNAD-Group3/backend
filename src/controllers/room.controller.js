@@ -2,7 +2,7 @@ import roomService from '#src/services/room.service.js';
 
 const { createRooms, getRoom, deleteRoom, updateRoom } = roomService;
 export const getRoomController = async (req, res) => {
-  const { name, roomId } = req.body;
+  const { name, roomId } = req.query;
   if (name == null || roomId == null) {
     const error = new Error('Name and roomId are required');
     error.status = 400;
@@ -36,14 +36,14 @@ export const createRoomsController = async (req, res) => {
 };
 
 export const updateRoomController = async (req, res) => {
-  const { id, name, hasRack } = req.body;
-  if (id == null || name == null || hasRack == null) {
-    const error = new Error('Room id, name and hasRack are required');
+  const { id, name, rackNum } = req.body;
+  if (id == null || name == null || rackNum == null) {
+    const error = new Error('Room id, name and rackNum are required');
     error.status = 400;
     throw error;
   }
   try {
-    await updateRoom(id, name, hasRack);
+    await updateRoom(id, name, rackNum);
     res.status(200).json({ message: 'Updated' });
   } catch (e) {
     const error = e;

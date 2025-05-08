@@ -16,7 +16,7 @@ class RoomServices {
       await client.query('BEGIN');
       const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
-        return client.query('INSERT INTO rooms(name, hasRack, fab_id, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
+        return client.query('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
           room.name,
           hasRack,
           id,
@@ -59,7 +59,7 @@ class RoomServices {
     }
     const query = ` 
       SELECT 
-        r.id AS room_id, r.name AS room_name, r.roomNum, r.hasRack,
+        r.id AS room_id, r.name AS room_name, r.rackNum, r.hasRack,
         rk.id AS rack_id, rk.name AS rack_name, rk.service,
         s.id AS server_id, s.name AS server_name
       FROM fabs dc
@@ -117,7 +117,7 @@ class RoomServices {
     return result;
   }
 
-  async updateRoom(roomId, name, hasRack) {
+  async updateRoom(roomId, name, rackNum) {
     const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: `msg=Room not found` });
@@ -125,7 +125,7 @@ class RoomServices {
       error.status = 404;
       throw error;
     }
-    await pool.query('UPDATE rooms SET hasRack = $1, name = $2 WHERE id = $3', [hasRack, name, roomId]);
+    await pool.query('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [rackNum, name, roomId]);
     logger.info({
       message: `msg=Room ${roomId} updated`,
     });

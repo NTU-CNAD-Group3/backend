@@ -162,7 +162,7 @@ describe('RoomServices', () => {
     test('throws 404 if room not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.updateRoom(1, 'Room X', true))
+      await expect(roomService.updateRoom(1, 'Room X', 7))
         .rejects.toThrow('Room not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
@@ -175,11 +175,11 @@ describe('RoomServices', () => {
         .mockResolvedValueOnce({ rows: [{ exists: true }] })
         .mockResolvedValueOnce(); // update query
 
-      await roomService.updateRoom(1, 'Room X', true);
+      await roomService.updateRoom(1, 'Room X', 7);
 
       expect(mockQuery).toHaveBeenCalledWith(
-        'UPDATE rooms SET hasRack = $1, name = $2 WHERE id = $3',
-        [true, 'Room X', 1]
+        'UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3',
+        [7, 'Room X', 1]
       );
 
       expect(mockLoggerInfo).toHaveBeenCalledWith({

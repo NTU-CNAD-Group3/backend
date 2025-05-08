@@ -34,13 +34,13 @@ describe('room.controller', () => {
 
   // getRoomController
   test('getRoomController should throw 400 if missing params', async () => {
-    const req = { body: { name: null, roomId: null } };
+    const req = { query: { name: null, roomId: null } };
     const res = mockRes();
     await expect(getRoomController(req, res)).rejects.toThrow('Name and roomId are required');
   });
 
   test('getRoomController should return room data', async () => {
-    const req = { body: { name: 'test', roomId: '123' } };
+    const req = { query: { name: 'test', roomId: '123' } };
     const res = mockRes();
     const roomData = { id: '123', name: 'test' };
     mockGetRoom.mockResolvedValue(roomData);
@@ -53,7 +53,7 @@ describe('room.controller', () => {
   });
 
   test('getRoomController should throw 500 if service fails', async () => {
-    const req = { body: { name: 'test', roomId: '123' } };
+    const req = { query: { name: 'test', roomId: '123' } };
     const res = mockRes();
     mockGetRoom.mockRejectedValue(new Error('DB error'));
 
@@ -89,13 +89,13 @@ describe('room.controller', () => {
 
   // updateRoomController
   test('updateRoomController should throw 400 if missing params', async () => {
-    const req = { body: { id: null, name: null, hasRack: null } };
+    const req = { body: { id: null, name: null, rackNum: null } };
     const res = mockRes();
-    await expect(updateRoomController(req, res)).rejects.toThrow('Room id, name and hasRack are required');
+    await expect(updateRoomController(req, res)).rejects.toThrow('Room id, name and rackNum are required');
   });
 
   test('updateRoomController should update room', async () => {
-    const req = { body: { id: '123', name: 'updated', hasRack: true } };
+    const req = { body: { id: '123', name: 'updated', rackNum: true } };
     const res = mockRes();
     mockUpdateRoom.mockResolvedValue();
 
@@ -107,7 +107,7 @@ describe('room.controller', () => {
   });
 
   test('updateRoomController should throw 500 if service fails', async () => {
-    const req = { body: { id: '123', name: 'updated', hasRack: true } };
+    const req = { body: { id: '123', name: 'updated', rackNum: true } };
     const res = mockRes();
     mockUpdateRoom.mockRejectedValue(new Error('DB error'));
 
