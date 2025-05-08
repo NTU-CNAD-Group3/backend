@@ -14,11 +14,11 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const rackNum = 0;
+      const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
-        return client.query('INSERT INTO rooms(name, rack_num, fab_id, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
+        return client.query('INSERT INTO rooms(name, hasRack, fab_id, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
           room.name,
-          rackNum,
+          hasRack,
           id,
           room.rackNum,
           room.height,
