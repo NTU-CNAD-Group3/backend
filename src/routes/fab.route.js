@@ -1,8 +1,8 @@
 import express from 'express';
 
 import {
-  getFabDetailsController,
-  getAllRoomsController,
+  // getFabDetailsController,
+  // getAllRoomsController,
   getAllFabsController,
   getFabController,
   createFabController,
@@ -12,8 +12,8 @@ import {
 
 const router = express.Router();
 
-router.get('/details', getFabDetailsController);
-router.get('/rooms/:id', getAllRoomsController);
+// router.get('/details', getFabDetailsController);
+// router.get('/rooms/:id', getAllRoomsController);
 router.get('/allFabs', getAllFabsController);
 router.get('/', getFabController);
 router.post('/', createFabController);
