@@ -52,7 +52,7 @@ class FabServices {
   // }
 
   async getFab(id) {
-    const inTable =await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: `msg=Fab not found` });
       const error = new Error('DC not found');
@@ -74,6 +74,7 @@ class FabServices {
     `;
     const { rows } = await pool.query(query, [id]);
     const result = {
+      id,
       name: '',
       roomNum: 0,
       createdAt: null,
@@ -92,40 +93,42 @@ class FabServices {
         if (!result.rooms[roomKey]) {
           result.roomNum++;
           result.rooms[roomKey] = {
+            id: row.room_id,
             name: row.room_name,
             rackNum: 0,
             racks: {},
           };
         }
-    
+
         const room = result.rooms[roomKey];
-    
+
         // Only if there is a rack
         if (row.rack_id) {
           const rackKey = `rack${row.rack_id}`;
           if (!room.racks[rackKey]) {
             room.rackNum++;
             room.racks[rackKey] = {
+              id: row.rack_id,
               name: row.rack_name,
               service: row.service,
               serverNum: 0,
               servers: {},
             };
           }
-    
+
           const rack = room.racks[rackKey];
-    
+
           // Only if there is a server
           if (row.server_id) {
             const serverKey = `server${row.server_id}`;
             rack.serverNum++;
             rack.servers[serverKey] = {
+              id: row.server_id,
               name: row.server_name,
             };
           }
         }
       }
-      
     }
 
     logger.info({ message: `msg=Fab get` });
@@ -153,16 +156,16 @@ class FabServices {
       // If no fabs are found, return empty result
       return result;
     }
-  
+
     // If fabs exist but no rooms, racks, or servers
     let lastDcKey = null;
-  
+
     for (const row of rows) {
       const dcKey = `dc${row.dc_id}`;
       const roomKey = `room${row.room_id}`;
       const rackKey = `rack${row.rack_id}`;
       const serverKey = `server${row.server_id}`;
-  
+
       if (!result[dcKey]) {
         result[dcKey] = {
           name: row.dc_name,
@@ -171,9 +174,9 @@ class FabServices {
         };
         lastDcKey = dcKey; // Track the last DC key added
       }
-  
+
       const dc = result[dcKey];
-  
+
       if (row.room_id) {
         if (!dc.rooms[roomKey]) {
           dc.roomNum++;
@@ -183,9 +186,9 @@ class FabServices {
             racks: {},
           };
         }
-  
+
         const room = dc.rooms[roomKey];
-  
+
         if (row.rack_id) {
           if (!room.racks[rackKey]) {
             room.rackNum++;
@@ -196,9 +199,9 @@ class FabServices {
               servers: {},
             };
           }
-  
+
           const rack = room.racks[rackKey];
-  
+
           if (row.server_id) {
             rack.serverNum++;
             rack.servers[serverKey] = {
@@ -211,7 +214,7 @@ class FabServices {
         }
       }
     }
-  
+
     // Ensure that if there are no rooms, racks, or servers for the last fab, it's still included
     if (lastDcKey) {
       const lastFab = result[lastDcKey];
@@ -225,14 +228,14 @@ class FabServices {
   }
 
   async createFab(name) {
-    const inTable =await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
     if (inTable.rows[0].exists) {
       logger.error({ message: `msg=The name must be unique` });
       const error = new Error('The name must be unique');
       error.status = 400;
       throw error;
     }
-    const roomNum=0;
+    const roomNum = 0;
     const result = await pool.query('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING id', [name, roomNum]);
     logger.info({
       message: `msg=Fab created name=${name}`,
@@ -241,14 +244,14 @@ class FabServices {
   }
 
   async updateFab(id, name, roomNum) {
-    const inTable =await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: 'msg=Fab not found' });
       const error = new Error('DC not found');
       error.status = 404;
       throw error;
     }
-    const naming =await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
+    const naming = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
     if (naming.rows[0].exists) {
       logger.error({ message: 'msg=The name must be unique' });
       const error = new Error('The name must be unique');
@@ -262,7 +265,7 @@ class FabServices {
   }
 
   async deleteFab(name) {
-    const naming =await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
+    const naming = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
     if (!naming.rows[0].exists) {
       logger.error({ message: 'msg=Fab not found' });
       const error = new Error('The name does not exist');

@@ -68,7 +68,7 @@ export const createFabController = async (req, res) => {
     const id = await createFab(name);
     res.status(201).json({ data: id, message: 'Created' });
   } catch (e) {
-    const error = e;//new Error('Unknown error');
+    const error = e; // new Error('Unknown error');
     error.status = 500;
     throw error;
   }
