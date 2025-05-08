@@ -1,8 +1,14 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
+import ipService from '#src/services/ip.service.js';
+
 class ServerServices {
-  async createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) {
+  async createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition) {
+    const client = await pool.connect();
     try {
+      await client.query('BEGIN');
+      const [ip, ipPoolId] = await ipService.assign(service);
+
       const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3))`;
       const overlapResult = await pool.query(overlapQuery, [rackId, frontPosition, backPosition]);
 
@@ -16,29 +22,52 @@ class ServerServices {
       logger.info({
         message: `msg=Server created name=${name}`,
       });
-      return result.rows[0];
+      const server = result.rows[0];
+
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=Server ${name} created`,
+      });
+      return server;
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error({
         message: `msg=Server create name=${name} error error=${error}`,
       });
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
   async deleteServer(id) {
+    const client = await pool.connect();
     try {
+      await client.query('BEGIN');
+
+      await ipService.release(id);
       const result = await pool.query('DELETE FROM servers WHERE id = $1 RETURNING *', [id]);
       logger.info({
         message: `msg=Server ${id} deleted`,
       });
-      return result.rows[0];
-    } catch (error) {
-      logger.error({
-        message: `msg=Server ${id} deleted error error=${error}`,
+      const server = result.rows[0];
+
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=Server ${id} deleted`,
       });
+      return server;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({
+        message: `msg=Server ${id} deleted error=${error}`,
+      });
+    } finally {
+      client.release();
     }
   }
 
-  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy) {
+y  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy) {
     try {
       const result = await pool.query(
         'UPDATE servers SET name = $1, service = $2, ip = $3, unit = $4, fabId = $5, roomId = $6, rackId = $7, ipPoolId = $8, frontPosition = $9, backPosition = $10, healthy = $11 WHERE id = $12 RETURNING *',

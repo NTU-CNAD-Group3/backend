@@ -143,3 +143,278 @@ export const databaseClose = async () => {
 };
 
 export default { pool, databaseConnection, databaseRecreation, databaseClose };
+
+import {
+  getDcService,
+  createDcService,
+  getAllDcService,
+  updateDcService,
+  deleteDcService,
+  getRoomService,
+  createRoomsService,
+  updateRoomService,
+  deleteRoomService,
+  createServerService,
+  getServerService,
+  updateServerService,
+  deleteServerService,
+  getAllServerService,
+} from '#src/services/backend.service.js';
+export const createDc = async (req, res, next) => {
+  const response = await createDcService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(201).json(response.data);
+    });
+  });
+};
+
+export const getDc = async (req, res, next) => {
+  const response = await getDcService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+export const getAllDc = async (req, res, next) => {
+  const response = await getAllDcService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+export const updateDc = async (req, res, next) => {
+  const response = await updateDcService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+export const deleteDc = async (req, res, next) => {
+  const response = await deleteDcService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+export const createRooms = async (req, res, next) => {
+  const response = await createRoomsService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(201).json(response.data);
+    });
+  });
+};
+
+export const getRoom = async (req, res, next) => {
+  const response = await getRoomService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+export const updateRoom = async (req, res, next) => {
+  const response = await updateRoomService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+export const deleteRoom = async (req, res, next) => {
+  const response = await deleteRoomService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+export const createServer = async (req, res, next) => {
+  const response = await createServerService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(201).json(response.data);
+    });
+  });
+};
+
+
+export const getServer = async (req, res, next) => {
+  const response = await getServerService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+
+export const updateServer = async (req, res, next) => {
+  const response = await updateServerService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+
+export const deleteServer = async (req, res, next) => {
+  const response = await deleteServerService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+export const getAllServer = async (req, res, next) => {
+  const response = await getAllServerService(req);
+
+  req.session.regenerate(function (err) {
+    if (err) return next(err);
+
+    req.session.save(function (err) {
+      if (err) return next(err);
+      res.status(200).json(response.data);
+    });
+  });
+};
+
+
+
+
+
+import instance from '#src/utils/axios.js';
+import config from '#src/config.js';
+const axios = instance.create('backend');
+
+// 廠區
+export const getDcService = async (req) => {
+  const response = await axios.get(config.GET_DC, { params: req.query });
+  return response;
+};
+export const createDcService = async (req) => {
+  const response = await axios.post(config.CREATE_DC, req.body);
+  return response;
+};
+export const getAllDcService = async (req) => {
+  const response = await axios.get(config.GET_ALL_DC, req.body);
+  return response;
+};
+export const updateDcService = async (req) => {
+  const response = await axios.put(config.UPDATE_DC, req.body);
+  return response;
+};
+
+export const deleteDcService = async (req) => {
+  const response = await axios.delete(config.DELETE_DC, { data: req.body });
+  return response;
+};
+
+// 機房
+export const getRoomService = async (req) => {
+  const response = await axios.get(config.GET_ROOM, {params: req.query});
+  return response;
+};
+export const createRoomsService = async (req) => {
+  const response = await axios.post(config.CREATE_ROOMS, req.body);
+  return response;
+};
+export const updateRoomService = async (req) => {
+  const response = await axios.put(config.UPDATE_ROOM, req.body);
+  return response;
+};
+
+export const deleteRoomService = async (req) => {
+  const response = await axios.delete(config.DELETE_ROOM, { data: req.body });
+  return response;
+};
+
+// 伺服器
+export const getServerService = async (req) => {
+  const response = await axios.get(config.GET_SERVER, { params: req.query });
+  return response;
+};
+
+export const createServerService = async (req) => {
+  const response = await axios.post(config.CREATE_SERVER, req.body);
+  return response;
+};
+
+export const updateServerService = async (req) => {
+  const response = await axios.put(config.UPDATE_SERVER, req.body);
+  return response;
+};
+
+export const deleteServerService = async (req) => {
+  const response = await axios.delete(config.DELETE_SERVER, { data: req.body });
+  return response;
+};
+
+export const getAllServerService = async (req) => {
+  const response = await axios.get(config.GET_ALL_SERVER, req.body);
+  return response;
+};
+
+

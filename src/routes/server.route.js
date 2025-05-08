@@ -14,6 +14,6 @@ router.post('/', createServerController); // Create a server
 router.delete('/', deleteServerController); // Delete a server
 router.put('/', updateServerController); // Update a server
 router.get('/', getServerController); // Get a server by ID
-router.get('/AllServers', getAllServersController); // Get all servers
+router.get('/allServers', getAllServersController); // Get all servers
 
 export default router;
