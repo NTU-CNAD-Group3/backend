@@ -1,70 +1,213 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 class RoomServices {
-  async createRoom(name, rackNum, fabId, height) {
+  async createRooms(fabName, roomNum, roomArray) {
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
+    if (!inTable.rows[0].exists) {
+      logger.error({ message: `msg=Fab not found` });
+      const error = new Error('DC not found');
+      error.status = 404;
+      throw error;
+    }
+    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [fabName])).rows[0].id;
+    // 先假設room名稱可以重複
+    const client = await pool.connect();
     try {
-      const result = await pool.query('INSERT INTO rooms (name, rackNum, fabId, height) VALUES ($1, $2, $3, $4) RETURNING *', [
-        name,
-        rackNum,
-        fabId,
-        height,
-      ]);
+      await client.query('BEGIN');
+      const hasRack = 0;
+      const roomPromises = roomArray.map((room) => {
+        return client.query('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
+          room.name,
+          hasRack,
+          id,
+          room.rackNum,
+          room.height,
+        ]);
+      });
+      await Promise.all(roomPromises);
+      await client.query('UPDATE fabs SET roomNum = roomNum + $1 WHERE name=$2;', [roomNum, fabName]);
+      await client.query('COMMIT');
       logger.info({
-        message: `msg=Room created name=${name} at fabId=${fabId}`,
+        message: `msg=${roomNum} rooms created`,
       });
-      return result.rows[0];
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error({
-        message: `msg=Room create name=${name} at fabId=${fabId} error error=${error}`,
+        message: `msg=${roomNum} rooms create error`,
       });
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
-  async getHasRack(id) {
-    try {
-      const result = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]);
-      const hasRack = result.rows[0].hasrack;
-      logger.info({
-        message: `msg=Room ${id} check hasRack=${hasRack}`,
-      });
-      return hasRack;
-    } catch (error) {
-      logger.error({
-        message: `msg=Room ${id} check error error=${error}`,
-      });
+  async getRoom(fabName, roomId) {
+    const inFTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
+    if (!inFTable.rows[0].exists) {
+      logger.error({ message: `msg=Fab not found` });
+      const error = new Error('DC not found');
+      error.status = 404;
+      throw error;
     }
+    const fabId = (await pool.query('SELECT id FROM fabs WHERE name = $1', [fabName])).rows[0].id;
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE fabId = $1 and id = $2)', [fabId, roomId]);
+    if (!inTable.rows[0].exists) {
+      logger.error({ message: `msg=Room not found` });
+      const error = new Error('Room not found');
+      error.status = 404;
+      throw error;
+    }
+    const query = ` 
+      SELECT 
+        r.id AS room_id, r.name AS room_name, r.rackNum, r.hasRack,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service,
+        s.id AS server_id, s.name AS server_name
+      FROM fabs dc
+      LEFT JOIN rooms r ON r.fabId = dc.id
+      LEFT JOIN racks rk ON rk.roomId = r.id
+      LEFT JOIN servers s ON s.rackId = rk.id
+      WHERE dc.id = $1 and r.id = $2
+      ORDER BY r.id, rk.id, s.id
+    `;
+    const { rows } = await pool.query(query, [fabId, roomId]);
+    const result = {
+      name: '',
+      rackNum: 0,
+      hasRack: 0,
+      createdAt: null,
+      updatedAt: null,
+      racks: {},
+    };
+
+    for (const row of rows) {
+      if (!result.name) {
+        result.name = row.room_name;
+        result.rackNum = row.racknum;
+        result.hasRack = row.hasrack;
+        result.createdAt = row.createdat;
+        result.updatedAt = row.updatedat;
+      }
+      // Only if there is a rack
+      if (row.rack_id) {
+        const rackKey = `rack${row.rack_id}`;
+        if (!result.racks[rackKey]) {
+          //result.rackNum++;
+          result.racks[rackKey] = {
+            name: row.rack_name,
+            service: row.service,
+            serverNum: 0,
+            servers: {},
+          };
+        }
+
+        const rack = result.racks[rackKey];
+
+        // Only if there is a server
+        if (row.server_id) {
+          const serverKey = `server${row.server_id}`;
+          rack.serverNum++;
+          rack.servers[serverKey] = {
+            name: row.server_name,
+          };
+        }
+      }
+    }
+
+    logger.info({ message: `msg=Room ${roomId} get` });
+    return result;
   }
 
-  async getRackNum(id) {
-    try {
-      const result = await pool.query('SELECT rackNum FROM rooms WHERE id = $1', [id]);
-
-      const rackNum = result.rows[0].racknum;
-      logger.info({
-        message: `msg=Room ${id} get rackNum=${rackNum}`,
-      });
-      return rackNum;
-    } catch (error) {
-      logger.error({
-        message: `msg=Room ${id} get error error=${error}`,
-      });
+  async updateRoom(roomId, name, rackNum) {
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
+    if (!inTable.rows[0].exists) {
+      logger.error({ message: `msg=Room not found` });
+      const error = new Error('Room not found');
+      error.status = 404;
+      throw error;
     }
+    await pool.query('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [rackNum, name, roomId]);
+    logger.info({
+      message: `msg=Room ${roomId} updated`,
+    });
   }
 
-  async updateRoom(id, hasRack) {
+  async deleteRoom(fabName, roomId) {
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
+    if (!inTable.rows[0].exists) {
+      logger.error({ message: `msg=Room not found` });
+      const error = new Error('Room not found');
+      error.status = 404;
+      throw error;
+    }
+    const client = await pool.connect();
     try {
-      const result = await pool.query('UPDATE rooms SET hasRack = $1 WHERE id = $2 RETURNING *', [hasRack, id]);
+      await client.query('BEGIN');
+      await client.query('DELETE FROM rooms WHERE id = $1', [roomId]);
+      await client.query('UPDATE fabs SET roomNum = roomNum - 1 WHERE name=$1;', [fabName]);
+      await client.query('COMMIT');
       logger.info({
-        message: `msg=Room ${id} updated hasRack=${hasRack}`,
+        message: `msg=Room ${roomId} deleted`,
       });
-      return result.rows[0];
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error({
-        message: `msg=Room ${id} updated error error=${error}`,
+        message: `msg=Room ${roomId} deleted error`,
       });
+      throw error;
+    } finally {
+      client.release();
     }
   }
 }
 const roomService = new RoomServices();
 
 export default roomService;
+
+// async createRoom(name, rackNum, fabId, height) {
+//   try {
+//     const result = await pool.query('INSERT INTO rooms (name, rackNum, fabId, height) VALUES ($1, $2, $3, $4) RETURNING *', [
+//       name,
+//       rackNum,
+//       fabId,
+//       height,
+//     ]);
+//     logger.info({
+//       message: `msg=Room created name=${name} at fabId=${fabId}`,
+//     });
+//     return result.rows[0];
+//   } catch (error) {
+//     logger.error({
+//       message: `msg=Room create name=${name} at fabId=${fabId} error error=${error}`,
+//     });
+//   }
+// }
+
+// async getHasRack(id) {
+//   try {
+//     const result = await pool.query('SELECT hasRack FROM rooms WHERE id = $1', [id]);
+//     const hasRack = result.rows[0].hasrack;
+//     logger.info({
+//       message: `msg=Room ${id} check hasRack=${hasRack}`,
+//     });
+//     return hasRack;
+//   } catch (error) {
+//     logger.error({
+//       message: `msg=Room ${id} check error error=${error}`,
+//     });
+//   }
+// }
+// async getRackNum(id) {
+//   try {
+//     const result = await pool.query('SELECT rackNum FROM rooms WHERE id = $1', [id]);
+
+//     const rackNum = result.rows[0].racknum;
+//     logger.info({
+//       message: `msg=Room ${id} get rackNum=${rackNum}`,
+//     });
+//     return rackNum;
+//   } catch (error) {
+//     logger.error({
+//       message: `msg=Room ${id} get error error=${error}`,
+//     });
+//   }
+// }

@@ -128,14 +128,14 @@ describe('Fab Service – Unit Tests', () => {
           backposition: 1,
         },
       ];
-  
+
       pool.query.mockResolvedValue({ rows: mockDbRows });
-  
+
       const result = await fabService.getAllFabs();
-  
+
       expect(pool.query).toHaveBeenCalledTimes(1);
       expect(logger.info).toHaveBeenCalledWith({ message: 'msg=All fabs get' });
-  
+
       expect(result).toEqual({
         dc1: {
           name: 'FabA',
@@ -165,17 +165,17 @@ describe('Fab Service – Unit Tests', () => {
       });
     });
   });
-  
 
   // --- getFab ---
   describe('getFab', () => {
     const mockId = 1;
-  
+
     it('should return structured fab data if fab exists', async () => {
       // 模擬 SELECT EXISTS 回傳 true
       pool.query
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // inTable
-        .mockResolvedValueOnce({                            // actual data
+        .mockResolvedValueOnce({
+          // actual data
           rows: [
             {
               dc_id: 1,
@@ -190,30 +190,31 @@ describe('Fab Service – Unit Tests', () => {
             },
           ],
         });
-  
+
       const result = await fabService.getFab(mockId);
-  
-      expect(pool.query).toHaveBeenCalledWith(
-        'SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)',
-        [mockId]
-      );
-  
+
+      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [mockId]);
+
       expect(logger.info).toHaveBeenCalledWith({ message: 'msg=Fab get' });
-  
+
       expect(result).toEqual({
+        id: 1,
         name: 'FabX',
         roomNum: 1,
         rooms: {
           room10: {
+            id: 10,
             name: 'RoomX',
             rackNum: 1,
             racks: {
               rack100: {
+                id: 100,
                 name: 'RackX',
                 service: 'Network',
                 serverNum: 1,
                 servers: {
                   server1000: {
+                    id: 1000,
                     name: 'ServerX',
                   },
                 },
@@ -223,10 +224,10 @@ describe('Fab Service – Unit Tests', () => {
         },
       });
     });
-  
+
     it('should throw 404 error if fab does not exist', async () => {
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] });
-  
+
       await expect(fabService.getFab(mockId)).rejects.toThrow('DC not found');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
     });
@@ -236,29 +237,29 @@ describe('Fab Service – Unit Tests', () => {
   describe('createFab', () => {
     const mockName = 'NewFab';
     const mockRoomNum = 0;
-  
+
     it('should create a fab successfully and return the new fab', async () => {
       // Mock for SELECT EXISTS
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Name is unique
-      
+
       // Mock for INSERT query
       pool.query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Return new fab's ID
-  
+
       const result = await fabService.createFab(mockName);
-  
+
       expect(pool.query).toHaveBeenCalledTimes(2);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
       expect(pool.query).toHaveBeenCalledWith('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING id', [mockName, mockRoomNum]);
-      
+
       expect(result).toEqual({ id: 1 });
       expect(logger.info).toHaveBeenCalledWith({ message: `msg=Fab created name=${mockName}` });
       expect(logger.error).not.toHaveBeenCalled();
     });
-  
+
     it('should throw an error if the fab name already exists', async () => {
       // Mock for SELECT EXISTS
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Name already exists
-  
+
       await expect(fabService.createFab(mockName, mockRoomNum)).rejects.toThrow('The name must be unique');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=The name must be unique' });
     });
@@ -269,38 +270,38 @@ describe('Fab Service – Unit Tests', () => {
     const mockId = 1;
     const mockName = 'UpdatedFab';
     const mockRoomNum = 10;
-  
+
     it('should update a fab successfully', async () => {
       // Mock for SELECT EXISTS
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Name is unique for update
-  
+
       await fabService.updateFab(mockId, mockName, mockRoomNum);
-  
+
       expect(pool.query).toHaveBeenCalledTimes(3);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [mockId]);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
       expect(pool.query).toHaveBeenCalledWith('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3', [mockName, mockRoomNum, mockId]);
-      
+
       expect(logger.info).toHaveBeenCalledWith({
         message: `msg=Fab updated name=${mockName} roomNum=${mockRoomNum}`,
       });
       expect(logger.error).not.toHaveBeenCalled();
     });
-  
+
     it('should throw an error if fab does not exist', async () => {
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Fab does not exist
-  
+
       await expect(fabService.updateFab(mockId, mockName, mockRoomNum)).rejects.toThrow('DC not found');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
     });
-  
+
     it('should throw an error if the updated fab name already exists', async () => {
       // Mock for SELECT EXISTS for fab
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
       // Mock for SELECT EXISTS for name
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Name already exists
-  
+
       await expect(fabService.updateFab(mockId, mockName, mockRoomNum)).rejects.toThrow('The name must be unique');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=The name must be unique' });
     });
@@ -309,24 +310,24 @@ describe('Fab Service – Unit Tests', () => {
   // --- deleteFab ---
   describe('deleteFab', () => {
     const mockName = 'FabToDelete';
-  
+
     it('should delete a fab successfully', async () => {
       // Mock for SELECT EXISTS
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
-  
+
       await fabService.deleteFab(mockName);
-  
+
       expect(pool.query).toHaveBeenCalledTimes(2);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
       expect(pool.query).toHaveBeenCalledWith('DELETE FROM fabs WHERE name = $1', [mockName]);
-  
+
       expect(logger.info).toHaveBeenCalledWith({ message: `msg=Fab deleted name=${mockName}` });
       expect(logger.error).not.toHaveBeenCalled();
     });
-  
+
     it('should throw an error if fab does not exist', async () => {
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Fab does not exist
-  
+
       await expect(fabService.deleteFab(mockName)).rejects.toThrow('The name does not exist');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
     });
