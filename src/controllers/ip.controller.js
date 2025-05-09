@@ -2,67 +2,87 @@ import ipSerive from '#src/services/ip.service.js';
 
 const { assign, createIpPool, release, getAllIp, getUsedIp } = ipSerive;
 
-export const assignIpController = async (req, res) => {
+export const assignController = async (req, res) => {
   const { service } = req.body;
   if (service == null) {
-    return res.status(400).json({ error: 'service are required' });
+    const error = new Error('Service are required');
+    error.status = 400;
+    throw error;
   }
   try {
     const assignedIp = await assign(service);
-    res.status(201).json(assignedIp);
-  } catch (error) {
-    res.status(500).json({ error: `Can not assign IP` });
+    res.status(201).json({ data: assignedIp, message: 'Assigned' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
   }
 };
 
 export const createIpPoolController = async (req, res) => {
   const { service, cidrBlock } = req.body;
   if (service == null || cidrBlock == null) {
-    return res.status(400).json({ error: 'service, cidrBlock are required' });
+    const error = new Error('Service, cidrBlock are required');
+    error.status = 400;
+    throw error;
   }
   try {
     const ipPool = await createIpPool(service, cidrBlock);
-    res.status(201).json(ipPool);
-  } catch (error) {
-    res.status(500).json({ error: `Can not create IP pool` });
+    res.status(201).json({ data: ipPool, message: 'Created' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
   }
 };
 
 export const releaseController = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   if (id == null) {
-    return res.status(400).json({ error: 'Server ID are required' });
+    const error = new Error('Server ID are required');
+    error.status = 400;
+    throw error;
   }
   try {
     const releasedIP = await release(id);
-    res.status(200).json(releasedIP);
-  } catch (error) {
-    res.status(500).json({ error: `Can not realse IP` });
+    res.status(200).json({ data: releasedIP, message: 'Released' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
   }
 };
 
 export const getAllIpController = async (req, res) => {
-  const { service } = req.body;
+  const { service } = req.query;
   if (service == null) {
-    return res.status(400).json({ error: 'service are required' });
+    const error = new Error('Service are required');
+    error.status = 400;
+    throw error;
   }
   try {
     const allIPs = await getAllIp(service);
-    res.status(200).json(allIPs);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get all IP` });
+    res.status(200).json({ data: allIPs, message: 'OK' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
   }
 };
 
 export const getUsedIpController = async (req, res) => {
-  const { service } = req.body;
+  const { service } = req.query;
   if (service == null) {
-    return res.status(400).json({ error: 'service are required' });
+    const error = new Error('Service are required');
+    error.status = 400;
+    throw error;
   }
   try {
     const usedIPs = await getUsedIp(service);
-    res.status(200).json(usedIPs);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get used IP` });
+    res.status(200).json({ data: usedIPs, message: 'OK' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
   }
 };

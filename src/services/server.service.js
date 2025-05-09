@@ -67,7 +67,7 @@ class ServerServices {
     }
   }
 
-y  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy) {
+  async updateServer(id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy) {
     try {
       const result = await pool.query(
         'UPDATE servers SET name = $1, service = $2, ip = $3, unit = $4, fabId = $5, roomId = $6, rackId = $7, ipPoolId = $8, frontPosition = $9, backPosition = $10, healthy = $11 WHERE id = $12 RETURNING *',
