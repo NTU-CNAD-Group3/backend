@@ -28,7 +28,7 @@ class RackServices {
 
       const constraint = (await client.query('SELECT rackNum, hasRack, height FROM rooms WHERE id = $1', [roomId])).rows[0];
       if (constraint.hasrack + rackNum > constraint.racknum) {
-        const error = new Error('Rack numbor out of room limitation');
+        const error = new Error('Rack number out of room limitation');
         error.status = 400;
         throw error;
       }

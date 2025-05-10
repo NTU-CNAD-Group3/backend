@@ -75,7 +75,7 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ racknum: 5, hasrack: 4 }] }); // room constraint 超額
 
       await expect(rackService.createRacks('Fab1', 100, 2, [{ name: 'Rack X', service: 'S', height: 42 }])).rejects.toThrow(
-        'Rack numbor out of room limitation',
+        'Rack number out of room limitation',
       );
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
