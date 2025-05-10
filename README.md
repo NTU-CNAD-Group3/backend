@@ -26,6 +26,9 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
+## metrics
+/metrics
+
 ## Endpoints
 
 |             Endpoint              | Method |           Description            |
