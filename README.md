@@ -47,4 +47,13 @@ cp .env.development .env
 |             /api/rack             |  PUT   | Update rack with id,name         |
 |             /api/rack             | DELETE |      delete rack with r/rk,id    |
 |             /api/rack             |  GET   |    get rack with name,r/rkid     |
+|             /api/server           |  POST  |    create a server               |
+|             /api/server           |  PUT   |    Update a server               |
+|             /api/server           | DELETE |    Delete a server by id         |
+|             /api/server           |  GET   |    Get a server by id            |
+|             /api/server/AllServers|  GET   |   Get all servers                |
+|             /api/server/name      |  GET   |    Get a server by name          |
+|             /api/server/ip        |  GET   |    Get a server by ip            |
+|             /api/server/service   |  GET   | Get all servers by service name  |
+
 
