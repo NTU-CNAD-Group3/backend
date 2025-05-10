@@ -14,12 +14,9 @@ await jest.unstable_mockModule('#src/services/rack.service.js', () => ({
   },
 }));
 
-const {
-  createRacksController,
-  getRackController,
-  updateRackController,
-  deleteRackController,
-} = await import('#src/controllers/rack.controller.js');
+const { createRacksController, getRackController, updateRackController, deleteRackController } = await import(
+  '#src/controllers/rack.controller.js'
+);
 
 describe('Rack Controllers', () => {
   let req, res;
@@ -47,9 +44,7 @@ describe('Rack Controllers', () => {
     test('should throw error if required fields are missing', async () => {
       req.body = { fabName: null, roomId: 1, rackNum: 2, rackArray: [] };
 
-      await expect(createRacksController(req, res)).rejects.toThrow(
-        'fabName, roomId, rackNum and rackArray are required'
-      );
+      await expect(createRacksController(req, res)).rejects.toThrow('fabName, roomId, rackNum and rackArray are required');
       expect(mockCreateRacks).not.toHaveBeenCalled();
     });
   });
@@ -70,9 +65,7 @@ describe('Rack Controllers', () => {
     test('should throw error if required fields are missing', async () => {
       req.query = { fabName: null, roomId: 1, rackId: 10 };
 
-      await expect(getRackController(req, res)).rejects.toThrow(
-        'fabName, roomId and rackId are required'
-      );
+      await expect(getRackController(req, res)).rejects.toThrow('fabName, roomId and rackId are required');
       expect(mockGetRack).not.toHaveBeenCalled();
     });
   });
@@ -91,9 +84,7 @@ describe('Rack Controllers', () => {
     test('should throw error if required fields are missing', async () => {
       req.body = { rackId: null, name: 'New Name' };
 
-      await expect(updateRackController(req, res)).rejects.toThrow(
-        'Room id and name are required'
-      );
+      await expect(updateRackController(req, res)).rejects.toThrow('Room id and name are required');
       expect(mockUpdateRack).not.toHaveBeenCalled();
     });
   });
@@ -112,9 +103,7 @@ describe('Rack Controllers', () => {
     test('should throw error if required fields are missing', async () => {
       req.params = { roomId: null, id: 10 };
 
-      await expect(deleteRackController(req, res)).rejects.toThrow(
-        'RoomId and id are required'
-      );
+      await expect(deleteRackController(req, res)).rejects.toThrow('RoomId and id are required');
       expect(mockDeleteRack).not.toHaveBeenCalled();
     });
   });

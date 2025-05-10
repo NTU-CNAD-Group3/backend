@@ -30,12 +30,8 @@ const { getAllFabs, getFab, createFab, updateFab, deleteFab } = fabService;
 // };
 
 export const getAllFabsController = async (req, res) => {
-  try {
-    const fabs = await getAllFabs();
-    res.status(200).json({ data: fabs, message: 'OK' });
-  } catch (error) {
-    throw error;
-  }
+  const fabs = await getAllFabs();
+  res.status(200).json({ data: fabs, message: 'OK' });
 };
 
 export const getFabController = async (req, res) => {
@@ -45,12 +41,8 @@ export const getFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const fab = await getFab(id);
-    res.status(200).json({ data: fab, message: 'OK' });
-  } catch (error) {
-    throw error;
-  }
+  const fab = await getFab(id);
+  res.status(200).json({ data: fab, message: 'OK' });
 };
 
 export const createFabController = async (req, res) => {
@@ -60,12 +52,8 @@ export const createFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const id = await createFab(name);
-    res.status(201).json({ data: id, message: 'Created' });
-  } catch (error) {
-    throw error;
-  }
+  const id = await createFab(name);
+  res.status(201).json({ data: id, message: 'Created' });
 };
 
 export const updateFabController = async (req, res) => {
@@ -75,12 +63,8 @@ export const updateFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await updateFab(id, name, roomNum);
-    res.status(200).json({ message: 'Updated' });
-  } catch (error) {
-    throw error;
-  }
+  await updateFab(id, name, roomNum);
+  res.status(200).json({ message: 'Updated' });
 };
 
 export const deleteFabController = async (req, res) => {
@@ -90,10 +74,6 @@ export const deleteFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await deleteFab(name);
-    res.status(200).json({ message: 'Deleted' });
-  } catch (error) {
-    throw error;
-  }
+  await deleteFab(name);
+  res.status(200).json({ message: 'Deleted' });
 };

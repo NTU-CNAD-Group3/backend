@@ -96,7 +96,7 @@ class RoomServices {
       if (row.rack_id) {
         const rackKey = `rack${row.rack_id}`;
         if (!result.racks[rackKey]) {
-          //result.rackNum++;
+          // result.rackNum++;
           result.racks[rackKey] = {
             name: row.rack_name,
             service: row.service,

@@ -42,7 +42,7 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ racknum: 10, hasrack: 2 }] }) // room constraint
         .mockResolvedValue({}) // insert & update (multiple)
         .mockResolvedValue({}); // advisory unlock
-     
+
       const racks = [
         { name: 'Rack 1', service: 'S1', height: 42 },
         { name: 'Rack 2', service: 'S2', height: 42 },
@@ -60,9 +60,7 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({}) // advisory lock
         .mockResolvedValueOnce({ rows: [{ exists: false }] }); // fabs not found
 
-      await expect(
-        rackService.createRacks('InvalidFab', 100, 1, [])
-      ).rejects.toThrow('DC not found');
+      await expect(rackService.createRacks('InvalidFab', 100, 1, [])).rejects.toThrow('DC not found');
 
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Fab not found') }));
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
@@ -76,9 +74,9 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
         .mockResolvedValueOnce({ rows: [{ racknum: 5, hasrack: 4 }] }); // room constraint 超額
 
-      await expect(
-        rackService.createRacks('Fab1', 100, 2, [{ name: 'Rack X', service: 'S', height: 42 }])
-      ).rejects.toThrow('Rack numbor out of room limitation');
+      await expect(rackService.createRacks('Fab1', 100, 2, [{ name: 'Rack X', service: 'S', height: 42 }])).rejects.toThrow(
+        'Rack numbor out of room limitation',
+      );
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
     });
@@ -116,9 +114,7 @@ describe('RackServices', () => {
     test('should throw error if fab not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] }); // fabs not found
 
-      await expect(
-        rackService.getRack('InvalidFab', 100, 1)
-      ).rejects.toThrow('DC not found');
+      await expect(rackService.getRack('InvalidFab', 100, 1)).rejects.toThrow('DC not found');
 
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Fab not found') }));
     });
@@ -149,7 +145,7 @@ describe('RackServices', () => {
       expect(result.servers).toEqual({});
       expect(result.serverNum).toBe(0);
     });
-      });
+  });
 
   describe('updateRack', () => {
     test('should update rack name successfully', async () => {
@@ -165,9 +161,7 @@ describe('RackServices', () => {
     test('should throw error if rack not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] }); // rack not found
 
-      await expect(
-        rackService.updateRack(999, 'Name')
-      ).rejects.toThrow('Rack not found');
+      await expect(rackService.updateRack(999, 'Name')).rejects.toThrow('Rack not found');
 
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
     });
@@ -191,9 +185,7 @@ describe('RackServices', () => {
     test('should throw error if rack not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] }); // rack not found
 
-      await expect(
-        rackService.deleteRack(100, 1)
-      ).rejects.toThrow('Rack not found');
+      await expect(rackService.deleteRack(100, 1)).rejects.toThrow('Rack not found');
 
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
     });

@@ -3,10 +3,10 @@ import rackService from '#src/services/rack.service.js';
 const { createRacks, getRack, updateRack, deleteRack } = rackService;
 
 export const createRacksController = async (req, res) => {
-  const {fabName, roomId, rackNum, rackArray } = req.body;
-  if (fabName == null || roomId == null || rackNum == null || rackArray == null ) {
+  const { fabName, roomId, rackNum, rackArray } = req.body;
+  if (fabName == null || roomId == null || rackNum == null || rackArray == null) {
     const error = new Error('fabName, roomId, rackNum and rackArray are required');
-    error.status=400;
+    error.status = 400;
     throw error;
   }
   await createRacks(fabName, roomId, rackNum, rackArray);
@@ -14,7 +14,7 @@ export const createRacksController = async (req, res) => {
 };
 
 export const getRackController = async (req, res) => {
-  const {fabName, roomId, rackId} = req.query;
+  const { fabName, roomId, rackId } = req.query;
   if (fabName == null || roomId == null || rackId == null) {
     const error = new Error('fabName, roomId and rackId are required');
     error.status = 400;
@@ -26,7 +26,7 @@ export const getRackController = async (req, res) => {
 
 export const updateRackController = async (req, res) => {
   const { rackId, name } = req.body;
-  if (rackId == null || name == null ) {
+  if (rackId == null || name == null) {
     const error = new Error('Room id and name are required');
     error.status = 400;
     throw error;

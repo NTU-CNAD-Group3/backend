@@ -5,7 +5,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import promClient from 'prom-client'; 
+import promClient from 'prom-client';
 
 import config from '#src/config.js';
 import { databaseConnection } from '#src/models/db.js';
@@ -61,7 +61,7 @@ app.use((req, res, next) => {
     }
     httpRequestCounter.inc({
       method: req.method,
-      route: route,
+      route,
       status_code: res.statusCode,
     });
   });

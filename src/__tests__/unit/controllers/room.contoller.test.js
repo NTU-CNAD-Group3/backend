@@ -13,12 +13,9 @@ await jest.unstable_mockModule('#src/services/room.service.js', () => ({
   },
 }));
 
-const {
-  getRoomController,
-  createRoomsController,
-  updateRoomController,
-  deleteRoomController,
-} = await import('#src/controllers/room.controller.js');
+const { getRoomController, createRoomsController, updateRoomController, deleteRoomController } = await import(
+  '#src/controllers/room.controller.js'
+);
 
 const mockRes = () => {
   const res = {};

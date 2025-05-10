@@ -2,7 +2,6 @@ import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 class RackServices {
   async createRacks(fabName, roomId, rackNum, rackArray) {
-  
     // 先假設rack名稱可以重複
     const client = await pool.connect();
     try {
@@ -27,16 +26,15 @@ class RackServices {
         throw error;
       }
 
-      const constraint = (await client.query('SELECT rackNum, hasRack FROM rooms WHERE id = $1',[roomId])).rows[0];
-      if(constraint.hasrack+rackNum>constraint.racknum){
+      const constraint = (await client.query('SELECT rackNum, hasRack FROM rooms WHERE id = $1', [roomId])).rows[0];
+      if (constraint.hasrack + rackNum > constraint.racknum) {
         const error = new Error('Rack numbor out of room limitation');
         error.status = 400;
         throw error;
       }
 
       const rackPromises = rackArray.map((rack) => {
-        return client.query('INSERT INTO racks (name, service,  fabId, roomId, height ,maxEmpty) VALUES ($1, $2, $3, $4,$5, $6)',
-        [
+        return client.query('INSERT INTO racks (name, service,  fabId, roomId, height ,maxEmpty) VALUES ($1, $2, $3, $4,$5, $6)', [
           rack.name,
           rack.service,
           fabId,
@@ -62,8 +60,8 @@ class RackServices {
     } finally {
       client.release();
     }
-   
   }
+
   async getRack(fabName, roomId, rackId) {
     const inFTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
     if (!inFTable.rows[0].exists) {
@@ -73,7 +71,11 @@ class RackServices {
       throw error;
     }
     const fabId = (await pool.query('SELECT id FROM fabs WHERE name = $1', [fabName])).rows[0].id;
-    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE fabId = $1 and roomId = $2 and id = $3)', [fabId, roomId, rackId]);
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE fabId = $1 and roomId = $2 and id = $3)', [
+      fabId,
+      roomId,
+      rackId,
+    ]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: `msg=Room not found` });
       const error = new Error('Room not found');
@@ -112,13 +114,13 @@ class RackServices {
         result.updatedAt = row.updatedat;
       }
 
-        // Only if there is a server
-        if (row.server_id) {
-          const serverKey = `server${row.server_id}`;
-          result.serverNum++;
-          result.servers[serverKey] = {
-            name: row.server_name,
-          };
+      // Only if there is a server
+      if (row.server_id) {
+        const serverKey = `server${row.server_id}`;
+        result.serverNum++;
+        result.servers[serverKey] = {
+          name: row.server_name,
+        };
       }
     }
 
@@ -139,7 +141,8 @@ class RackServices {
       message: `msg=Rack ${rackId} updated`,
     });
   }
-  async deleteRack(roomId,id) {
+
+  async deleteRack(roomId, id) {
     const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [roomId]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: `msg=Rack not found` });

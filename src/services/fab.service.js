@@ -74,7 +74,7 @@ class FabServices {
     `;
     const { rows } = await pool.query(query, [id]);
     const result = {
-      id:0,
+      id: 0,
       name: '',
       roomNum: 0,
       createdAt: null,

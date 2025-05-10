@@ -32,8 +32,7 @@ describe('RoomServices', () => {
     test('throws 404 if fab not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.createRooms('fab1', 2, []))
-        .rejects.toThrow('DC not found');
+      await expect(roomService.createRooms('fab1', 2, [])).rejects.toThrow('DC not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
         message: expect.stringContaining('Fab not found'),
@@ -46,9 +45,7 @@ describe('RoomServices', () => {
         release: jest.fn(),
       };
 
-      mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] }) 
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] });     
+      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({ rows: [{ id: 1 }] });
 
       mockConnect.mockResolvedValue(mockClient);
       mockClient.query.mockResolvedValue();
@@ -57,14 +54,8 @@ describe('RoomServices', () => {
       await roomService.createRooms('fab1', 1, roomArray);
 
       expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO rooms'),
-        ['Room A', 0, 1, 2, 42]
-      );
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE fabs'),
-        [1, 'fab1']
-      );
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO rooms'), ['Room A', 0, 1, 2, 42]);
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('UPDATE fabs'), [1, 'fab1']);
       expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
 
       expect(mockLoggerInfo).toHaveBeenCalledWith({
@@ -78,22 +69,17 @@ describe('RoomServices', () => {
         release: jest.fn(),
       };
 
-      mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] }) 
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] });      
+      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({ rows: [{ id: 1 }] });
 
       mockConnect.mockResolvedValue(mockClient);
-      mockClient.query
-        .mockResolvedValueOnce()  
-        .mockRejectedValue(new Error('Insert error')); 
+      mockClient.query.mockResolvedValueOnce().mockRejectedValue(new Error('Insert error'));
 
-      await expect(roomService.createRooms('fab1', 1, [{ name: 'Room A', rackNum: 2, height: 42 }]))
-        .rejects.toThrow('Insert error');
+      await expect(roomService.createRooms('fab1', 1, [{ name: 'Room A', rackNum: 2, height: 42 }])).rejects.toThrow('Insert error');
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-    //   expect(mockLoggerError).toHaveBeenCalledWith({
-    //     message: expect.stringContaining('1 rooms create error'),
-    //   });
+      //   expect(mockLoggerError).toHaveBeenCalledWith({
+      //     message: expect.stringContaining('1 rooms create error'),
+      //   });
     });
   });
 
@@ -101,8 +87,7 @@ describe('RoomServices', () => {
     test('throws 404 if fab not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.getRoom('fab1', 1))
-        .rejects.toThrow('DC not found');
+      await expect(roomService.getRoom('fab1', 1)).rejects.toThrow('DC not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
         message: expect.stringContaining('Fab not found'),
@@ -111,12 +96,11 @@ describe('RoomServices', () => {
 
     test('throws 404 if room not found', async () => {
       mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })  
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] })         
-        .mockResolvedValueOnce({ rows: [{ exists: false }] }); 
+        .mockResolvedValueOnce({ rows: [{ exists: true }] })
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] })
+        .mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.getRoom('fab1', 1))
-        .rejects.toThrow('Room not found');
+      await expect(roomService.getRoom('fab1', 1)).rejects.toThrow('Room not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
         message: expect.stringContaining('Room not found'),
@@ -125,9 +109,9 @@ describe('RoomServices', () => {
 
     test('returns room data', async () => {
       mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })  
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] })         
-        .mockResolvedValueOnce({ rows: [{ exists: true }] }) 
+        .mockResolvedValueOnce({ rows: [{ exists: true }] })
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] })
+        .mockResolvedValueOnce({ rows: [{ exists: true }] })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -162,8 +146,7 @@ describe('RoomServices', () => {
     test('throws 404 if room not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.updateRoom(1, 'Room X', 7))
-        .rejects.toThrow('Room not found');
+      await expect(roomService.updateRoom(1, 'Room X', 7)).rejects.toThrow('Room not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
         message: expect.stringContaining('Room not found'),
@@ -171,16 +154,11 @@ describe('RoomServices', () => {
     });
 
     test('updates room successfully', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })
-        .mockResolvedValueOnce(); // update query
+      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce(); // update query
 
       await roomService.updateRoom(1, 'Room X', 7);
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        'UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3',
-        [7, 'Room X', 1]
-      );
+      expect(mockQuery).toHaveBeenCalledWith('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [7, 'Room X', 1]);
 
       expect(mockLoggerInfo).toHaveBeenCalledWith({
         message: expect.stringContaining('Room 1 updated'),
@@ -192,8 +170,7 @@ describe('RoomServices', () => {
     test('throws 404 if room not found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(roomService.deleteRoom('fab1', 1))
-        .rejects.toThrow('Room not found');
+      await expect(roomService.deleteRoom('fab1', 1)).rejects.toThrow('Room not found');
 
       expect(mockLoggerError).toHaveBeenCalledWith({
         message: expect.stringContaining('Room not found'),
@@ -213,14 +190,8 @@ describe('RoomServices', () => {
       await roomService.deleteRoom('fab1', 1);
 
       expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'DELETE FROM rooms WHERE id = $1',
-        [1]
-      );
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE fabs'),
-        ['fab1']
-      );
+      expect(mockClient.query).toHaveBeenCalledWith('DELETE FROM rooms WHERE id = $1', [1]);
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('UPDATE fabs'), ['fab1']);
       expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
 
       expect(mockLoggerInfo).toHaveBeenCalledWith({
@@ -234,21 +205,17 @@ describe('RoomServices', () => {
         release: jest.fn(),
       };
 
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }); 
+      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] });
       mockConnect.mockResolvedValue(mockClient);
 
-      mockClient.query
-        .mockResolvedValueOnce()  
-        .mockRejectedValue(new Error('Delete error')); 
+      mockClient.query.mockResolvedValueOnce().mockRejectedValue(new Error('Delete error'));
 
-      await expect(roomService.deleteRoom('fab1', 1))
-        .rejects.toThrow('Delete error');
+      await expect(roomService.deleteRoom('fab1', 1)).rejects.toThrow('Delete error');
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-    //   expect(mockLoggerError).toHaveBeenCalledWith({
-    //     message: expect.stringContaining('Room 1 deleted error'),
-    //   });
+      //   expect(mockLoggerError).toHaveBeenCalledWith({
+      //     message: expect.stringContaining('Room 1 deleted error'),
+      //   });
     });
-    
   });
 });
