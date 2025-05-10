@@ -168,7 +168,7 @@ describe('Fab Service – Unit Tests', () => {
 
   // --- getFab ---
   describe('getFab', () => {
-    const mockId = 1;
+    const mockName = 'FabX';
 
     it('should return structured fab data if fab exists', async () => {
       // 模擬 SELECT EXISTS 回傳 true
@@ -191,9 +191,9 @@ describe('Fab Service – Unit Tests', () => {
           ],
         });
 
-      const result = await fabService.getFab(mockId);
+      const result = await fabService.getFab(mockName);
 
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [mockId]);
+      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
 
       expect(logger.info).toHaveBeenCalledWith({ message: 'msg=Fab get' });
 
@@ -228,7 +228,7 @@ describe('Fab Service – Unit Tests', () => {
     it('should throw 404 error if fab does not exist', async () => {
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-      await expect(fabService.getFab(mockId)).rejects.toThrow('DC not found');
+      await expect(fabService.getFab(mockName)).rejects.toThrow('DC not found');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
     });
   });
