@@ -91,7 +91,7 @@ describe('Rack Controllers', () => {
 
   describe('deleteRackController', () => {
     test('should delete rack successfully', async () => {
-      req.params = { rackId: 1, roomId: 10 };
+      req.body = { rackId: 1, roomId: 10 };
 
       await deleteRackController(req, res);
 
@@ -101,7 +101,7 @@ describe('Rack Controllers', () => {
     });
 
     test('should throw error if required fields are missing', async () => {
-      req.params = { rackId: null, roomId: 10 };
+      req.body = { rackId: null, roomId: 10 };
 
       await expect(deleteRackController(req, res)).rejects.toThrow('rackId and roomId are required');
       expect(mockDeleteRack).not.toHaveBeenCalled();
