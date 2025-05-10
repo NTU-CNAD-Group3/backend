@@ -51,8 +51,8 @@ class FabServices {
   //   }
   // }
 
-  async getFab(id) {
-    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
+  async getFab(name) {
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: `msg=Fab not found` });
       const error = new Error('DC not found');
@@ -69,12 +69,12 @@ class FabServices {
       LEFT JOIN rooms r ON r.fabId = dc.id
       LEFT JOIN racks rk ON rk.roomId = r.id
       LEFT JOIN servers s ON s.rackId = rk.id
-      WHERE dc.id = $1
+      WHERE dc.name = $1
       ORDER BY dc.id, r.id, rk.id, s.id
     `;
-    const { rows } = await pool.query(query, [id]);
+    const { rows } = await pool.query(query, [name]);
     const result = {
-      id:0,
+      id: 0,
       name: '',
       roomNum: 0,
       createdAt: null,
@@ -259,9 +259,9 @@ class FabServices {
       error.status = 400;
       throw error;
     }
-    await pool.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3', [name, roomNum, id]);
+    await pool.query('UPDATE fabs SET name = $1 WHERE id = $2', [name, id]);
     logger.info({
-      message: `msg=Fab updated name=${name} roomNum=${roomNum}`,
+      message: `msg=Fab updated name=${name}`,
     });
   }
 

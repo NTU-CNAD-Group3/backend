@@ -8,14 +8,8 @@ export const getRoomController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const room = await getRoom(name, roomId);
-    res.status(200).json({ data: room, message: 'OK' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  const room = await getRoom(name, roomId);
+  res.status(200).json({ data: room, message: 'OK' });
 };
 
 export const createRoomsController = async (req, res) => {
@@ -25,14 +19,8 @@ export const createRoomsController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await createRooms(name, roomNum, roomArray);
-    res.status(201).json({ message: 'Created' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  await createRooms(name, roomNum, roomArray);
+  res.status(201).json({ message: 'Created' });
 };
 
 export const updateRoomController = async (req, res) => {
@@ -42,14 +30,8 @@ export const updateRoomController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await updateRoom(id, name, rackNum);
-    res.status(200).json({ message: 'Updated' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  await updateRoom(id, name, rackNum);
+  res.status(200).json({ message: 'Updated' });
 };
 export const deleteRoomController = async (req, res) => {
   const { name, roomId } = req.body;
@@ -58,14 +40,8 @@ export const deleteRoomController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await deleteRoom(name, roomId);
-    res.status(200).json({ message: 'Deleted' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  await deleteRoom(name, roomId);
+  res.status(200).json({ message: 'Deleted' });
 };
 
 // export const createRoomController = async (req, res) => {
