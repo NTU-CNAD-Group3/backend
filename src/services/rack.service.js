@@ -26,7 +26,7 @@ class RackServices {
         throw error;
       }
 
-      const constraint = (await client.query('SELECT rackNum, hasRack FROM rooms WHERE id = $1', [roomId])).rows[0];
+      const constraint = (await client.query('SELECT rackNum, hasRack, height FROM rooms WHERE id = $1', [roomId])).rows[0];
       if (constraint.hasrack + rackNum > constraint.racknum) {
         const error = new Error('Rack numbor out of room limitation');
         error.status = 400;
@@ -34,6 +34,11 @@ class RackServices {
       }
 
       const rackPromises = rackArray.map((rack) => {
+        if (rack.height>constraint.height){
+          const error = new Error('Rack height out of room limitation');
+          error.status = 400;
+          throw error;
+        }
         return client.query('INSERT INTO racks (name, service,  fabId, roomId, height ,maxEmpty) VALUES ($1, $2, $3, $4,$5, $6)', [
           rack.name,
           rack.service,
