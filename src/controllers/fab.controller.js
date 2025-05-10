@@ -35,13 +35,13 @@ export const getAllFabsController = async (req, res) => {
 };
 
 export const getFabController = async (req, res) => {
-  const { id } = req.query;
-  if (id == null) {
-    const error = new Error('Fab ID is required');
+  const { name } = req.query;
+  if (name == null) {
+    const error = new Error('Fab name is required');
     error.status = 400;
     throw error;
   }
-  const fab = await getFab(id);
+  const fab = await getFab(name);
   res.status(200).json({ data: fab, message: 'OK' });
 };
 
