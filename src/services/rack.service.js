@@ -99,6 +99,7 @@ class RackServices {
     `;
     const { rows } = await pool.query(query, [roomId, rackId]);
     const result = {
+      id: 0,
       name: '',
       maxEmpty: 0,
       height: 0,
@@ -111,6 +112,7 @@ class RackServices {
 
     for (const row of rows) {
       if (!result.name) {
+        result.id = rackId;
         result.name = row.rack_name;
         result.maxEmpty = row.maxempty;
         result.height = row.height;
@@ -124,6 +126,7 @@ class RackServices {
         const serverKey = `server${row.server_id}`;
         result.serverNum++;
         result.servers[serverKey] = {
+          id: row.server_id,
           name: row.server_name,
         };
       }

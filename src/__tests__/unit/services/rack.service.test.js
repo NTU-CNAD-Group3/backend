@@ -107,7 +107,7 @@ describe('RackServices', () => {
       const result = await rackService.getRack('Fab1', 100, 1);
 
       expect(result.name).toBe('Rack A');
-      expect(result.servers.server10).toEqual({ name: 'Server X' });
+      expect(result.servers.server10).toEqual({ id: 10, name: 'Server X' });
       expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack 1 get') }));
     });
 

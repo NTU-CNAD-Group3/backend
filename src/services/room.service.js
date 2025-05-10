@@ -76,6 +76,7 @@ class RoomServices {
     `;
     const { rows } = await pool.query(query, [fabId, roomId]);
     const result = {
+      id: 0,
       name: '',
       rackNum: 0,
       hasRack: 0,
@@ -86,6 +87,7 @@ class RoomServices {
 
     for (const row of rows) {
       if (!result.name) {
+        result.id = roomId;
         result.name = row.room_name;
         result.rackNum = row.racknum;
         result.hasRack = row.hasrack;
@@ -98,6 +100,7 @@ class RoomServices {
         if (!result.racks[rackKey]) {
           // result.rackNum++;
           result.racks[rackKey] = {
+            id: row.rack_id,
             name: row.rack_name,
             service: row.service,
             serverNum: 0,
@@ -112,6 +115,7 @@ class RoomServices {
           const serverKey = `server${row.server_id}`;
           rack.serverNum++;
           rack.servers[serverKey] = {
+            id: row.server_id,
             name: row.server_name,
           };
         }
