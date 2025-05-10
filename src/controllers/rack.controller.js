@@ -36,7 +36,7 @@ export const updateRackController = async (req, res) => {
 };
 
 export const deleteRackController = async (req, res) => {
-  const { rackId, roomId } = req.params;
+  const { rackId, roomId } = req.body;
   if (rackId == null || roomId == null) {
     const error = new Error('rackId and roomId are required');
     error.status = 400;

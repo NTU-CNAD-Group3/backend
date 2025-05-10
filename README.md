@@ -5,10 +5,8 @@
 The Backend service contains the primary logic of the application. It is responsible for handling fab, rack, and server management. 
 
 ## 剩下要做的
-* 整理一下目前架構(包含Route、身分驗證)
-* IP 是否衝突
-* gateway
-* Unit test
+把所有API完成
+比較完整的監測系統，現在有一個metrics可以測
 
 ## Prerequisites
 
@@ -34,12 +32,16 @@ cp .env.development .env
 |:---------------------------------:|:------:|:--------------------------------:|
 |           /api/healthy            |  Get   | Check if the service is running. |
 |             /api/fab              |  POST  |      create fab with name        |
-|             /api/fab              |  PUT   |  Update fab with id,name,roomNum |
+|             /api/fab              |  PUT   |  Update fab with id,name         |
 |             /api/fab              | DELETE |      delete fab with name        |
 |             /api/fab              |  GET   |      get fab details with id     |
 |            /api/fab/allFabs       |  GET   |      get visual information      |
-|             /api/rooms            |  POST  |create rooms with fname,num,array |
+|             /api/room             |  POST  |create rooms with fname,num,array |
 |             /api/room             |  PUT   | Update room with id,name,rackNum |
 |             /api/room             | DELETE |      delete room with name,id    |
 |             /api/room             |  GET   |  get room details with name,id   |
+|             /api/rack             |  POST  |create racks with fname,num,array |
+|             /api/rack             |  PUT   | Update rack with id,name         |
+|             /api/rack             | DELETE |      delete rack with r/rk,id    |
+|             /api/rack             |  GET   |    get rack with name,r/rkid     |
 
