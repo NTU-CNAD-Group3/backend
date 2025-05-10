@@ -27,7 +27,7 @@ export const getRackController = async (req, res) => {
 export const updateRackController = async (req, res) => {
   const { rackId, name } = req.body;
   if (rackId == null || name == null) {
-    const error = new Error('Room id and name are required');
+    const error = new Error('rackId and name are required');
     error.status = 400;
     throw error;
   }
@@ -36,13 +36,13 @@ export const updateRackController = async (req, res) => {
 };
 
 export const deleteRackController = async (req, res) => {
-  const { roomId, id } = req.params;
-  if (roomId == null || id == null) {
-    const error = new Error('RoomId and id are required');
+  const { rackId, roomId } = req.params;
+  if (rackId == null || roomId == null) {
+    const error = new Error('rackId and roomId are required');
     error.status = 400;
     throw error;
   }
-  await deleteRack(roomId, id);
+  await deleteRack(rackId, roomId);
   res.status(200).json({ message: 'Deleted' });
 };
 // export const getMaxEmptyController = async (req, res) => {

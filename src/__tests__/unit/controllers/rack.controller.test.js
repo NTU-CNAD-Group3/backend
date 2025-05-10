@@ -84,14 +84,14 @@ describe('Rack Controllers', () => {
     test('should throw error if required fields are missing', async () => {
       req.body = { rackId: null, name: 'New Name' };
 
-      await expect(updateRackController(req, res)).rejects.toThrow('Room id and name are required');
+      await expect(updateRackController(req, res)).rejects.toThrow('rackId and name are required');
       expect(mockUpdateRack).not.toHaveBeenCalled();
     });
   });
 
   describe('deleteRackController', () => {
     test('should delete rack successfully', async () => {
-      req.params = { roomId: 1, id: 10 };
+      req.params = { rackId: 1, roomId: 10 };
 
       await deleteRackController(req, res);
 
@@ -101,9 +101,9 @@ describe('Rack Controllers', () => {
     });
 
     test('should throw error if required fields are missing', async () => {
-      req.params = { roomId: null, id: 10 };
+      req.params = { rackId: null, roomId: 10 };
 
-      await expect(deleteRackController(req, res)).rejects.toThrow('RoomId and id are required');
+      await expect(deleteRackController(req, res)).rejects.toThrow('rackId and roomId are required');
       expect(mockDeleteRack).not.toHaveBeenCalled();
     });
   });
