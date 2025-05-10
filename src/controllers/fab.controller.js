@@ -30,31 +30,19 @@ const { getAllFabs, getFab, createFab, updateFab, deleteFab } = fabService;
 // };
 
 export const getAllFabsController = async (req, res) => {
-  try {
-    const fabs = await getAllFabs();
-    res.status(200).json({ data: fabs, message: 'OK' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  const fabs = await getAllFabs();
+  res.status(200).json({ data: fabs, message: 'OK' });
 };
 
 export const getFabController = async (req, res) => {
-  const { id } = req.query;
-  if (id == null) {
-    const error = new Error('Fab ID is required');
+  const { name } = req.query;
+  if (name == null) {
+    const error = new Error('Fab name is required');
     error.status = 400;
     throw error;
   }
-  try {
-    const fab = await getFab(id);
-    res.status(200).json({ data: fab, message: 'OK' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  const fab = await getFab(name);
+  res.status(200).json({ data: fab, message: 'OK' });
 };
 
 export const createFabController = async (req, res) => {
@@ -64,31 +52,19 @@ export const createFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const id = await createFab(name);
-    res.status(201).json({ data: id, message: 'Created' });
-  } catch (e) {
-    const error = e; // new Error('Unknown error');
-    error.status = 500;
-    throw error;
-  }
+  const id = await createFab(name);
+  res.status(201).json({ data: id, message: 'Created' });
 };
 
 export const updateFabController = async (req, res) => {
-  const { id, name, roomNum } = req.body;
-  if (id == null || name == null || roomNum == null) {
-    const error = new Error('ID, name and roomNum are required');
+  const { id, name } = req.body;
+  if (id == null || name == null) {
+    const error = new Error('ID and name are required');
     error.status = 400;
     throw error;
   }
-  try {
-    await updateFab(id, name, roomNum);
-    res.status(200).json({ message: 'Updated' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  await updateFab(id, name);
+  res.status(200).json({ message: 'Updated' });
 };
 
 export const deleteFabController = async (req, res) => {
@@ -98,12 +74,6 @@ export const deleteFabController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    await deleteFab(name);
-    res.status(200).json({ message: 'Deleted' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
-    throw error;
-  }
+  await deleteFab(name);
+  res.status(200).json({ message: 'Deleted' });
 };

@@ -13,12 +13,9 @@ await jest.unstable_mockModule('#src/services/room.service.js', () => ({
   },
 }));
 
-const {
-  getRoomController,
-  createRoomsController,
-  updateRoomController,
-  deleteRoomController,
-} = await import('#src/controllers/room.controller.js');
+const { getRoomController, createRoomsController, updateRoomController, deleteRoomController } = await import(
+  '#src/controllers/room.controller.js'
+);
 
 const mockRes = () => {
   const res = {};
@@ -52,7 +49,7 @@ describe('room.controller', () => {
     expect(res.json).toHaveBeenCalledWith({ data: roomData, message: 'OK' });
   });
 
-  test('getRoomController should throw 500 if service fails', async () => {
+  test('getRoomController should throw error if service fails', async () => {
     const req = { query: { name: 'test', roomId: '123' } };
     const res = mockRes();
     mockGetRoom.mockRejectedValue(new Error('DB error'));
@@ -79,7 +76,7 @@ describe('room.controller', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Created' });
   });
 
-  test('createRoomsController should throw 500 if service fails', async () => {
+  test('createRoomsController should throw error if service fails', async () => {
     const req = { body: { name: 'test', roomNum: 5, roomArray: [] } };
     const res = mockRes();
     mockCreateRooms.mockRejectedValue(new Error('DB error'));
@@ -106,7 +103,7 @@ describe('room.controller', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Updated' });
   });
 
-  test('updateRoomController should throw 500 if service fails', async () => {
+  test('updateRoomController should throw error if service fails', async () => {
     const req = { body: { id: '123', name: 'updated', rackNum: true } };
     const res = mockRes();
     mockUpdateRoom.mockRejectedValue(new Error('DB error'));
@@ -133,7 +130,7 @@ describe('room.controller', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Deleted' });
   });
 
-  test('deleteRoomController should throw 500 if service fails', async () => {
+  test('deleteRoomController should throw error if service fails', async () => {
     const req = { body: { name: 'test', roomId: '123' } };
     const res = mockRes();
     mockDeleteRoom.mockRejectedValue(new Error('DB error'));

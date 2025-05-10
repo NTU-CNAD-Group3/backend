@@ -14,6 +14,9 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const lockKey = 2001;
+      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+
       const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
         return client.query('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
@@ -26,6 +29,8 @@ class RoomServices {
       });
       await Promise.all(roomPromises);
       await client.query('UPDATE fabs SET roomNum = roomNum + $1 WHERE name=$2;', [roomNum, fabName]);
+
+      await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
         message: `msg=${roomNum} rooms created`,
@@ -71,6 +76,7 @@ class RoomServices {
     `;
     const { rows } = await pool.query(query, [fabId, roomId]);
     const result = {
+      id: 0,
       name: '',
       rackNum: 0,
       hasRack: 0,
@@ -81,6 +87,7 @@ class RoomServices {
 
     for (const row of rows) {
       if (!result.name) {
+        result.id = row.room_id;
         result.name = row.room_name;
         result.rackNum = row.racknum;
         result.hasRack = row.hasrack;
@@ -91,8 +98,9 @@ class RoomServices {
       if (row.rack_id) {
         const rackKey = `rack${row.rack_id}`;
         if (!result.racks[rackKey]) {
-          //result.rackNum++;
+          // result.rackNum++;
           result.racks[rackKey] = {
+            id: row.rack_id,
             name: row.rack_name,
             service: row.service,
             serverNum: 0,
@@ -107,6 +115,7 @@ class RoomServices {
           const serverKey = `server${row.server_id}`;
           rack.serverNum++;
           rack.servers[serverKey] = {
+            id: row.server_id,
             name: row.server_name,
           };
         }
