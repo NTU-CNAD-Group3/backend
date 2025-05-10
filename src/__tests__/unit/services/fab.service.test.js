@@ -269,22 +269,21 @@ describe('Fab Service – Unit Tests', () => {
   describe('updateFab', () => {
     const mockId = 1;
     const mockName = 'UpdatedFab';
-    const mockRoomNum = 10;
 
     it('should update a fab successfully', async () => {
       // Mock for SELECT EXISTS
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Name is unique for update
 
-      await fabService.updateFab(mockId, mockName, mockRoomNum);
+      await fabService.updateFab(mockId, mockName);
 
       expect(pool.query).toHaveBeenCalledTimes(3);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [mockId]);
       expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
-      expect(pool.query).toHaveBeenCalledWith('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3', [mockName, mockRoomNum, mockId]);
+      expect(pool.query).toHaveBeenCalledWith('UPDATE fabs SET name = $1 WHERE id = $2', [mockName, mockId]);
 
       expect(logger.info).toHaveBeenCalledWith({
-        message: `msg=Fab updated name=${mockName} roomNum=${mockRoomNum}`,
+        message: `msg=Fab updated name=${mockName}`,
       });
       expect(logger.error).not.toHaveBeenCalled();
     });
@@ -292,7 +291,7 @@ describe('Fab Service – Unit Tests', () => {
     it('should throw an error if fab does not exist', async () => {
       pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Fab does not exist
 
-      await expect(fabService.updateFab(mockId, mockName, mockRoomNum)).rejects.toThrow('DC not found');
+      await expect(fabService.updateFab(mockId, mockName)).rejects.toThrow('DC not found');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
     });
 
@@ -302,7 +301,7 @@ describe('Fab Service – Unit Tests', () => {
       // Mock for SELECT EXISTS for name
       pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Name already exists
 
-      await expect(fabService.updateFab(mockId, mockName, mockRoomNum)).rejects.toThrow('The name must be unique');
+      await expect(fabService.updateFab(mockId, mockName)).rejects.toThrow('The name must be unique');
       expect(logger.error).toHaveBeenCalledWith({ message: 'msg=The name must be unique' });
     });
   });

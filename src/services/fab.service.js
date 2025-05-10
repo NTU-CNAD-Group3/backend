@@ -259,9 +259,9 @@ class FabServices {
       error.status = 400;
       throw error;
     }
-    await pool.query('UPDATE fabs SET name = $1, roomNum = $2 WHERE id = $3', [name, roomNum, id]);
+    await pool.query('UPDATE fabs SET name = $1 WHERE id = $2', [name, id]);
     logger.info({
-      message: `msg=Fab updated name=${name} roomNum=${roomNum}`,
+      message: `msg=Fab updated name=${name}`,
     });
   }
 

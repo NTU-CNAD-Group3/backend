@@ -249,10 +249,10 @@ describe('Fab Controller – Unit Tests', () => {
 
   // --- updateFabController ---
   describe('updateFabController', () => {
-    it('should return 400 if id, name, or roomNum is missing', async () => {
-      const baseBody = { id: 1, name: 'Updated', roomNum: 10 };
-      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes)).rejects.toThrow(
-        'ID, name and roomNum are required',
+    it('should return 400 if id, name is missing', async () => {
+      const baseBody = { id: 1, name: 'Updated' };
+      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name } }, mockRes)).rejects.toThrow(
+        'ID and name are required',
       );
       // await updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes);
       // expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -275,15 +275,14 @@ describe('Fab Controller – Unit Tests', () => {
     it('should call service and return updated fab on success', async () => {
       const mockId = 1;
       const mockName = 'UpdatedFab';
-      const mockRoomNum = 8;
       // const mockUpdatedFab = { id: mockId, name: mockName, roomnum: mockRoomNum };
-      mockReq.body = { id: mockId, name: mockName, roomNum: mockRoomNum };
+      mockReq.body = { id: mockId, name: mockName };
       // mockUpdateFab.mockResolvedValue(mockUpdatedFab);
 
       await updateFabController(mockReq, mockRes);
 
       expect(fabService.updateFab).toHaveBeenCalledTimes(1);
-      expect(fabService.updateFab).toHaveBeenCalledWith(mockId, mockName, mockRoomNum);
+      expect(fabService.updateFab).toHaveBeenCalledWith(mockId, mockName);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Updated' });
     });
@@ -291,8 +290,7 @@ describe('Fab Controller – Unit Tests', () => {
     it('should throw error if service fails', async () => {
       const mockId = 1;
       const mockName = 'UpdatedFab';
-      const mockRoomNum = 8;
-      mockReq.body = { id: mockId, name: mockName, roomNum: mockRoomNum };
+      mockReq.body = { id: mockId, name: mockName};
       mockUpdateFab.mockRejectedValue(new Error('Service failed'));
 
       await expect(updateFabController(mockReq, mockRes)).rejects.toThrow('Service failed');

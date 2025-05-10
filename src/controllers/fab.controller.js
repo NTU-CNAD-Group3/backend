@@ -57,13 +57,13 @@ export const createFabController = async (req, res) => {
 };
 
 export const updateFabController = async (req, res) => {
-  const { id, name, roomNum } = req.body;
-  if (id == null || name == null || roomNum == null) {
-    const error = new Error('ID, name and roomNum are required');
+  const { id, name } = req.body;
+  if (id == null || name == null ) {
+    const error = new Error('ID and name are required');
     error.status = 400;
     throw error;
   }
-  await updateFab(id, name, roomNum);
+  await updateFab(id, name);
   res.status(200).json({ message: 'Updated' });
 };
 
