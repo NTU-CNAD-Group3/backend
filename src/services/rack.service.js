@@ -82,8 +82,8 @@ class RackServices {
       rackId,
     ]);
     if (!inTable.rows[0].exists) {
-      logger.error({ message: `msg=Room not found` });
-      const error = new Error('Room not found');
+      logger.error({ message: `msg=Rack not found` });
+      const error = new Error('Rack not found');
       error.status = 404;
       throw error;
     }
