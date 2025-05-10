@@ -177,6 +177,41 @@ class IpServices {
       throw error;
     }
   }
+
+  async getIpPool(service) {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
+
+      logger.info({
+        message: `msg=Get IpPools for service=${service}`,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error({
+        message: `IpPool get service=${service} error error=${error.message}`,
+      });
+      throw error;
+    }
+  }
+
+  async getAllIpPools() {
+    try {
+      const result = await pool.query(`SELECT * FROM ipPools`, []);
+
+      logger.info({
+        message: `msg=Get all IpPools`,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error({
+        message: `All IpPools get error error=${error.message}`,
+      });
+      throw error;
+    }
+  }
+
 }
 const ipService = new IpServices();
 

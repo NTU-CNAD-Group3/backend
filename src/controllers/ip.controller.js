@@ -1,6 +1,6 @@
 import ipSerive from '#src/services/ip.service.js';
 
-const { assign, createIpPool, release, getAllIp, getUsedIp } = ipSerive;
+const { assign, createIpPool, release, getAllIp, getUsedIp, getIpPool, getAllIpPools } = ipSerive;
 
 export const assignController = async (req, res) => {
   const { service } = req.body;
@@ -86,3 +86,31 @@ export const getUsedIpController = async (req, res) => {
     throw error;
   }
 };
+
+export const getIpPoolController = async (req, res) => {
+  const { service } = req.query;
+  if (service == null) {
+    const error = new Error('Service are required');
+    error.status = 400;
+    throw error;
+  }
+  try {
+    const ipPool = await getIpPool(service);
+    res.status(200).json({ data: ipPool, message: 'OK' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
+  }
+}
+
+export const getAllIpPoolsController = async (req, res) => {
+  try {
+    const ipPools = await getAllIpPools();
+    res.status(200).json({ data: ipPools, message: 'OK' });
+  } catch (e) {
+    const error = e; 
+    error.status = 500;
+    throw error;
+  }
+}

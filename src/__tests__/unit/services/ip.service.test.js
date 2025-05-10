@@ -362,7 +362,7 @@ describe('Ip Service - Unit test', () => {
       const mockRows = [
         { usedips: ['10.0.0.1', '10.0.0.2'] },
         { usedips: ['10.0.1.2'] },
-        ];
+      ];
   
       mockQuery.mockResolvedValueOnce({ rows: mockRows });
   
@@ -377,8 +377,53 @@ describe('Ip Service - Unit test', () => {
         message: `msg=Get used IPs for service=${mockServiceName}`,
       });
     });
+  });
+
+
+  describe('getIpPool', () => {
+    it('should return IpPools from all matching pools', async () => {
+      const mockServiceName = 'IPTest';
+      const usedIps1 = Array.from({ length: 256 }, (_, i) => `10.0.0.${i}`);
+      const usedIps2 = ['10.0.1.0', '10.0.1.1'];
+      const mockPoolResult = [
+        { id: 1, service: mockServiceName, cidr: '10.0.0.0/24', usedips: usedIps1 },
+        { id: 2, service: mockServiceName, cidr: '10.0.1.0/24', usedips: usedIps2 },
+      ];
   
+      mockQuery.mockResolvedValueOnce({ rows: mockPoolResult });
+  
+      const result = await ipService.getIpPool(mockServiceName);
+  
+      expect(pool.query).toHaveBeenCalledWith(
+        'SELECT * FROM ipPools WHERE service = $1',
+        [mockServiceName]
+      );
+      expect(result).toEqual({ rows: mockPoolResult });
+      expect(logger.info).toHaveBeenCalledWith({
+        message: `msg=Get IpPools for service=${mockServiceName}`,
+      });
+    });
   });
   
+  describe('getAllIpPools', () => {
+    it('should return all IpPools from all matching pools', async () => {
+      const usedIps1 = Array.from({ length: 256 }, (_, i) => `10.0.0.${i}`);
+      const usedIps2 = ['10.0.1.0', '10.0.1.1'];
+      const mockPoolResult = [
+        { id: 1, service: 'IPTest', cidr: '10.0.0.0/24', usedips: usedIps1 },
+        { id: 2, service: 'IPTest2', cidr: '10.0.1.0/24', usedips: usedIps2 },
+      ];
+  
+      mockQuery.mockResolvedValueOnce({ rows: mockPoolResult });
+  
+      const result = await ipService.getAllIpPools();
+  
+      expect(pool.query).toHaveBeenCalledWith('SELECT * FROM ipPools', []);
+      expect(result).toEqual({ rows: mockPoolResult });
+      expect(logger.info).toHaveBeenCalledWith({
+        message: `msg=Get all IpPools`,
+      });
+    });
+  });
 
 });

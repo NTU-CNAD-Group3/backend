@@ -5,6 +5,8 @@ const mockCreateIpPool = jest.fn();
 const mockRelease = jest.fn();
 const mockGetAllIp = jest.fn();
 const mockGetUsedIp = jest.fn();
+const mockGetIpPool = jest.fn();
+const mockGetAllIpPools = jest.fn();
 
 await jest.unstable_mockModule('#src/services/ip.service.js', () => ({
   default: {
@@ -13,6 +15,8 @@ await jest.unstable_mockModule('#src/services/ip.service.js', () => ({
     release: mockRelease,
     getAllIp: mockGetAllIp,
     getUsedIp: mockGetUsedIp,
+    getIpPool: mockGetIpPool,
+    getAllIpPools: mockGetAllIpPools,
   },
 }));
 
@@ -22,6 +26,8 @@ const {
   releaseController,
   getAllIpController,
   getUsedIpController,
+  getIpPoolController,
+  getAllIpPoolsController,
 } = await import('#src/controllers/ip.controller.js');
 
 const ipService = (await import('#src/services/ip.service.js')).default;
@@ -179,6 +185,52 @@ describe('IP Controllers - Unit Tests', () => {
       mockReq.query = { service: 'IPTest' };
       mockGetUsedIp.mockRejectedValue(new Error('Service failed'));
       await expect(getUsedIpController(mockReq, mockRes)).rejects.toThrow('Service failed');
+    });
+  });
+
+  describe('getIpPoolController', () => {
+    it('should return used IPs', async () => {
+      const IpPools = ['10.0.0.0/24', '10.0.1.0/24'];
+      mockReq.query = { service: 'IPTest' };
+
+      mockGetIpPool.mockResolvedValue(IpPools);
+
+      await getIpPoolController(mockReq, mockRes);
+
+      expect(ipService.getIpPool).toHaveBeenCalledTimes(1);
+      expect(ipService.getIpPool).toHaveBeenCalledWith('IPTest');
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.json).toHaveBeenCalledWith({ data: IpPools, message: 'OK' });
+    });
+
+    it('should throw 400 if service missing', async () => {
+      mockReq.query = {};
+      await expect(getIpPoolController(mockReq, mockRes)).rejects.toThrow('Service are required');
+    });
+
+    it('should throw 500 if service fails', async () => {
+      mockReq.query = { service: 'IPTest' };
+      mockGetIpPool.mockRejectedValue(new Error('Service failed'));
+      await expect(getIpPoolController(mockReq, mockRes)).rejects.toThrow('Service failed');
+    });
+  });
+
+  describe('getAllIpPoolsController', () => {
+    it('should return used IPs', async () => {
+      const IpPools = ['10.0.0.0/24', '10.0.1.0/24'];
+
+      mockGetAllIpPools.mockResolvedValue(IpPools);
+
+      await getAllIpPoolsController(mockReq, mockRes);
+
+      expect(ipService.getAllIpPools).toHaveBeenCalledTimes(1);
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.json).toHaveBeenCalledWith({ data: IpPools, message: 'OK' });
+    });
+
+    it('should throw 500 if service fails', async () => {
+      mockGetAllIpPools.mockRejectedValue(new Error('Service failed'));
+      await expect(getAllIpPoolsController(mockReq, mockRes)).rejects.toThrow('Service failed');
     });
   });
 });
