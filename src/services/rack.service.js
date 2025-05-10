@@ -112,7 +112,7 @@ class RackServices {
 
     for (const row of rows) {
       if (!result.name) {
-        result.id = rackId;
+        result.id = row.rack_id;
         result.name = row.rack_name;
         result.maxEmpty = row.maxempty;
         result.height = row.height;

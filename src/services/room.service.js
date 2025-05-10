@@ -87,7 +87,7 @@ class RoomServices {
 
     for (const row of rows) {
       if (!result.name) {
-        result.id = roomId;
+        result.id = row.room_id;
         result.name = row.room_name;
         result.rackNum = row.racknum;
         result.hasRack = row.hasrack;
