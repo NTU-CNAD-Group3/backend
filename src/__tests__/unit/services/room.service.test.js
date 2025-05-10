@@ -133,7 +133,7 @@ describe('RoomServices', () => {
       const result = await roomService.getRoom('fab1', 1);
       expect(result.name).toBe('Room A');
       expect(result.racks.rack10).toBeDefined();
-      expect(result.racks.rack10.servers.server100).toEqual({ id:100,name: 'Server Alpha' });
+      expect(result.racks.rack10.servers.server100).toEqual({ id: 100, name: 'Server Alpha' });
 
       expect(mockLoggerInfo).toHaveBeenCalledWith({
         message: expect.stringContaining('Room 1 get'),

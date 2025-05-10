@@ -34,7 +34,7 @@ class RackServices {
       }
 
       const rackPromises = rackArray.map((rack) => {
-        if (rack.height>constraint.height){
+        if (rack.height > constraint.height) {
           const error = new Error('Rack height out of room limitation');
           error.status = 400;
           throw error;

@@ -251,9 +251,7 @@ describe('Fab Controller – Unit Tests', () => {
   describe('updateFabController', () => {
     it('should return 400 if id, name is missing', async () => {
       const baseBody = { id: 1, name: 'Updated' };
-      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name } }, mockRes)).rejects.toThrow(
-        'ID and name are required',
-      );
+      await expect(updateFabController({ ...mockReq, body: { name: baseBody.name } }, mockRes)).rejects.toThrow('ID and name are required');
       // await updateFabController({ ...mockReq, body: { name: baseBody.name, roomNum: baseBody.roomNum } }, mockRes);
       // expect(mockRes.status).toHaveBeenCalledWith(400);
       // expect(mockRes.json).toHaveBeenCalledWith({ error: 'ID, name and roomNum are required' });
@@ -290,7 +288,7 @@ describe('Fab Controller – Unit Tests', () => {
     it('should throw error if service fails', async () => {
       const mockId = 1;
       const mockName = 'UpdatedFab';
-      mockReq.body = { id: mockId, name: mockName};
+      mockReq.body = { id: mockId, name: mockName };
       mockUpdateFab.mockRejectedValue(new Error('Service failed'));
 
       await expect(updateFabController(mockReq, mockRes)).rejects.toThrow('Service failed');
