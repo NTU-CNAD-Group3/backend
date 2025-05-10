@@ -110,6 +110,20 @@ class ServerServices {
       });
     }
   }
+
+  async getAllServerByService(service) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE service = $1', [service]);
+      logger.info({
+        message: `msg=Get all servers by service=${service}`,
+      });
+      return result.rows;
+    } catch (error) {
+      logger.error({
+        message: `msg=Get all servers by service=${service} error error=${error}`,
+      });
+    }
+  }
 }
 const serverService = new ServerServices();
 

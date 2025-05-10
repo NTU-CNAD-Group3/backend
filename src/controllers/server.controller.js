@@ -1,6 +1,7 @@
 import serverService from '#src/services/server.service.js';
 
-const { createServer, deleteServer, updateServer, getServer, getAllServers, getServerByName, getServerByIp } = serverService;
+const { createServer, deleteServer, updateServer, getServer, getAllServers, getServerByName, getServerByIp, getAllServerByService } =
+  serverService;
 
 export const createServerController = async (req, res) => {
   const { name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition } = req.body;
@@ -125,6 +126,19 @@ export const getServerByIpController = async (req, res) => {
   try {
     const server = await getServerByIp(ip);
     res.status(201).json(server);
+  } catch (error) {
+    res.status(500).json({ error: `Can not get server` });
+  }
+};
+
+export const getAllServerByServiceController = async (req, res) => {
+  const { service } = req.body;
+  if (service == null) {
+    return res.status(400).json({ error: 'Server service are required' });
+  }
+  try {
+    const servers = await getAllServerByService(service);
+    res.status(201).json(servers);
   } catch (error) {
     res.status(500).json({ error: `Can not get server` });
   }

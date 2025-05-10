@@ -8,6 +8,7 @@ import {
   getAllServersController,
   getServerByNameController,
   getServerByIpController,
+  getAllServerByServiceController,
 } from '#src/controllers/server.controller.js';
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.get('/AllServers', getAllServersController); // Get all servers
 
 router.get('/name', getServerByNameController); // Get a server by name
 router.get('/ip', getServerByIpController); // Get a server by IP
+router.get('/service', getAllServerByServiceController); // Get all servers by service
 
 export default router;

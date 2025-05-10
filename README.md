@@ -49,10 +49,11 @@ cp .env.development .env
 |             /api/rack             |  GET   |    get rack with name,r/rkid     |
 |             /api/server           |  POST  |    create a server               |
 |             /api/server           |  PUT   |    Update a server               |
-|             /api/server           | DELETE |    Delete a server               |
-|             /api/server           |  GET   |    Get a server by ID            |
+|             /api/server           | DELETE |    Delete a server by id         |
+|             /api/server           |  GET   |    Get a server by id            |
 |             /api/server/AllServers|  GET   |   Get all servers                |
 |             /api/server/name      |  GET   |    Get a server by name          |
-|             /api/server/ip        |  GET   |    Get a server by IP            |
+|             /api/server/ip        |  GET   |    Get a server by ip            |
+|             /api/server/service   |  GET   | Get all servers by service name  |
 
 
