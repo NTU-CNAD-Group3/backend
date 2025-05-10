@@ -90,7 +90,7 @@ class RackServices {
     const query = ` 
       SELECT 
         rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,
-        s.id AS server_id, s.name AS server_name, s.unit,
+        s.id AS server_id, s.name AS server_name, s.unit
       FROM rooms r
       LEFT JOIN racks rk ON rk.roomId = r.id
       LEFT JOIN servers s ON s.rackId = rk.id
