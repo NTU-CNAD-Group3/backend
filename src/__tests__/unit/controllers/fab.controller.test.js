@@ -160,7 +160,7 @@ describe('Fab Controller – Unit Tests', () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({ data: mockFabs, message: 'OK' });
     });
-    it('should throw 500 error if service fails', async () => {
+    it('should throw error if service fails', async () => {
       mockGetAllFabs.mockRejectedValue(new Error('Service failed'));
       await expect(getAllFabsController(mockReq, mockRes)).rejects.toThrow('Service failed');
     });
@@ -200,7 +200,7 @@ describe('Fab Controller – Unit Tests', () => {
       // expect(mockRes.json).toHaveBeenCalledWith(mockFab);
     });
 
-    it('should throw 500 error if service fails', async () => {
+    it('should throw error if service fails', async () => {
       const mockFabId = '1';
       mockReq.query = { id: mockFabId };
       mockGetFab.mockRejectedValue(new Error('Service failed'));
@@ -238,7 +238,7 @@ describe('Fab Controller – Unit Tests', () => {
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith({ data: mockCreatedFab, message: 'Created' });
     });
-    it('should throw 500 error if service fails', async () => {
+    it('should throw error if service fails', async () => {
       const mockName = 'FabC';
       mockReq.body = { name: mockName };
       mockCreateFab.mockRejectedValue(new Error('Service failed'));
@@ -288,7 +288,7 @@ describe('Fab Controller – Unit Tests', () => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Updated' });
     });
 
-    it('should throw 500 error if service fails', async () => {
+    it('should throw error if service fails', async () => {
       const mockId = 1;
       const mockName = 'UpdatedFab';
       const mockRoomNum = 8;
@@ -325,7 +325,7 @@ describe('Fab Controller – Unit Tests', () => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Deleted' });
     });
 
-    it('should throw 500 error if service fails', async () => {
+    it('should throw error if service fails', async () => {
       const mockName = 'ToDeleteFab';
       mockReq.body = { name: mockName };
       mockDeleteFab.mockRejectedValue(new Error('Service failed'));

@@ -33,9 +33,7 @@ export const getAllFabsController = async (req, res) => {
   try {
     const fabs = await getAllFabs();
     res.status(200).json({ data: fabs, message: 'OK' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
+  } catch (error) {
     throw error;
   }
 };
@@ -50,9 +48,7 @@ export const getFabController = async (req, res) => {
   try {
     const fab = await getFab(id);
     res.status(200).json({ data: fab, message: 'OK' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
+  } catch (error) {
     throw error;
   }
 };
@@ -67,9 +63,7 @@ export const createFabController = async (req, res) => {
   try {
     const id = await createFab(name);
     res.status(201).json({ data: id, message: 'Created' });
-  } catch (e) {
-    const error = e; // new Error('Unknown error');
-    error.status = 500;
+  } catch (error) {
     throw error;
   }
 };
@@ -84,9 +78,7 @@ export const updateFabController = async (req, res) => {
   try {
     await updateFab(id, name, roomNum);
     res.status(200).json({ message: 'Updated' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
+  } catch (error) {
     throw error;
   }
 };
@@ -101,9 +93,7 @@ export const deleteFabController = async (req, res) => {
   try {
     await deleteFab(name);
     res.status(200).json({ message: 'Deleted' });
-  } catch (e) {
-    const error = e;
-    error.status = 500;
+  } catch (error) {
     throw error;
   }
 };

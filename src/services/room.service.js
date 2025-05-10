@@ -14,6 +14,9 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const lockKey = 2001;
+      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+
       const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
         return client.query('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
@@ -26,6 +29,8 @@ class RoomServices {
       });
       await Promise.all(roomPromises);
       await client.query('UPDATE fabs SET roomNum = roomNum + $1 WHERE name=$2;', [roomNum, fabName]);
+
+      await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
         message: `msg=${roomNum} rooms created`,
