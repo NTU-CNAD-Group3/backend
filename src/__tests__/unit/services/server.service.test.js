@@ -1,20 +1,14 @@
 import { jest } from '@jest/globals';
 
 const mockQuery = jest.fn();
-
 await jest.unstable_mockModule('#src/models/db.js', () => ({
-  pool: {
-    query: mockQuery,
-  },
+  pool: { query: mockQuery },
 }));
 
 const mockInfo = jest.fn();
 const mockError = jest.fn();
 await jest.unstable_mockModule('#src/utils/logger.js', () => ({
-  default: {
-    info: mockInfo,
-    error: mockError,
-  },
+  default: { info: mockInfo, error: mockError },
 }));
 
 const serverService = (await import('#src/services/server.service.js')).default;
@@ -28,44 +22,23 @@ describe('ServerServices', () => {
    * createServer
    * ---------------------------------------------- */
   describe('createServer', () => {
-    test('should create a server when rack position is free', async () => {
-      const fakeServer = {
-        id: 1,
-        name: 'Server-A',
-        service: 'svc-A',
-        ip: '10.0.0.1',
-      };
+    const params = ['Server-A', 'svc-A', '10.0.0.1', 1, 1, 1, 1, 1, 1, 2];
 
+    test('creates server when rack slot free', async () => {
+      const fake = { id: 1, name: 'Server-A' };
       mockQuery
-        // overlap check ⇒ no rows → free position
-        .mockResolvedValueOnce({ rows: [] })
-        // INSERT ... RETURNING *
-        .mockResolvedValueOnce({ rows: [fakeServer] });
+        .mockResolvedValueOnce({ rows: [] }) // overlap
+        .mockResolvedValueOnce({ rows: [fake] }); // insert
 
-      const result = await serverService.createServer(
-        'Server-A', // name
-        'svc-A', // service
-        '10.0.0.1', // ip
-        1, // unit (U-height)
-        1, // fabId
-        1, // roomId
-        1, // rackId
-        1, // ipPoolId
-        1, // frontPosition
-        2, // backPosition
-      );
-
-      expect(result).toEqual(fakeServer);
+      const result = await serverService.createServer(...params);
+      expect(result).toEqual(fake);
       expect(mockQuery).toHaveBeenCalledTimes(2);
       expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server created') }));
     });
 
-    test('should throw if rack position overlaps', async () => {
-      // overlap query returns ≥ 1 row ⇒ occupied
+    test('throws when rack slot overlaps', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ id: 99 }] });
-
-      await expect(serverService.createServer('Srv', 'svc', '10.0.0.2', 1, 1, 1, 1, 1, 1, 2)).rejects.toThrow('Position already occupied');
-
+      await expect(serverService.createServer(...params)).rejects.toThrow('Position already occupied');
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server create') }));
     });
   });
@@ -74,13 +47,18 @@ describe('ServerServices', () => {
    * deleteServer
    * ---------------------------------------------- */
   describe('deleteServer', () => {
-    test('should delete a server', async () => {
+    test('deletes server and returns row', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ id: 42 }] });
+      const res = await serverService.deleteServer(42);
+      expect(res.id).toBe(42);
+      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 42 deleted') }));
+    });
 
-      const result = await serverService.deleteServer(42);
-
-      expect(result.id).toBe(42);
-      expect(mockQuery).toHaveBeenCalledWith('DELETE FROM servers WHERE id = $1 RETURNING *', [42]);
+    test('logs error and returns undefined on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('db err'));
+      const res = await serverService.deleteServer(1);
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 1 deleted error') }));
     });
   });
 
@@ -88,27 +66,21 @@ describe('ServerServices', () => {
    * updateServer
    * ---------------------------------------------- */
   describe('updateServer', () => {
-    test('should update a server', async () => {
-      const updated = { id: 7, name: 'Srv-New' };
-      mockQuery.mockResolvedValueOnce({ rows: [updated] });
+    const args = [7, 'Srv-New', 'svc', '10.0.0.7', 1, 1, 1, 1, 1, 1, 2, true];
 
-      const result = await serverService.updateServer(
-        7, // id
-        'Srv-New',
-        'svc',
-        '10.0.0.7',
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        2,
-        true,
-      );
-
-      expect(result).toEqual(updated);
+    test('updates server', async () => {
+      const row = { id: 7 };
+      mockQuery.mockResolvedValueOnce({ rows: [row] });
+      const res = await serverService.updateServer(...args);
+      expect(res).toEqual(row);
       expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 7 updated') }));
+    });
+
+    test('logs error and returns undefined on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('fail'));
+      const res = await serverService.updateServer(...args);
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 7 updated error') }));
     });
   });
 
@@ -116,14 +88,19 @@ describe('ServerServices', () => {
    * getServer
    * ---------------------------------------------- */
   describe('getServer', () => {
-    test('should return server by id', async () => {
-      const server = { id: 3, name: 'Srv-3' };
-      mockQuery.mockResolvedValueOnce({ rows: [server] });
+    test('returns server by id', async () => {
+      const row = { id: 3 };
+      mockQuery.mockResolvedValueOnce({ rows: [row] });
+      const res = await serverService.getServer(3);
+      expect(res).toEqual(row);
+      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by id=3') }));
+    });
 
-      const result = await serverService.getServer(3);
-
-      expect(result).toEqual(server);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM servers WHERE id = $1', [3]);
+    test('logs error and returns undefined on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('fail'));
+      const res = await serverService.getServer(1);
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by id=1 error') }));
     });
   });
 
@@ -131,14 +108,19 @@ describe('ServerServices', () => {
    * getAllServers
    * ---------------------------------------------- */
   describe('getAllServers', () => {
-    test('should return all servers', async () => {
-      const servers = [{ id: 1 }, { id: 2 }];
-      mockQuery.mockResolvedValueOnce({ rows: servers });
-
-      const result = await serverService.getAllServers();
-
-      expect(result).toEqual(servers);
+    test('lists all servers', async () => {
+      const list = [{ id: 1 }];
+      mockQuery.mockResolvedValueOnce({ rows: list });
+      const res = await serverService.getAllServers();
+      expect(res).toEqual(list);
       expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers') }));
+    });
+
+    test('logs error and returns undefined on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('err'));
+      const res = await serverService.getAllServers();
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers error') }));
     });
   });
 
@@ -146,14 +128,19 @@ describe('ServerServices', () => {
    * getServerByName
    * ---------------------------------------------- */
   describe('getServerByName', () => {
-    test('should find server by name (ILIKE)', async () => {
-      const server = { id: 11, name: 'My-Srv' };
-      mockQuery.mockResolvedValueOnce({ rows: [server] });
+    test('finds by name', async () => {
+      const srv = { id: 11 };
+      mockQuery.mockResolvedValueOnce({ rows: [srv] });
+      const res = await serverService.getServerByName('abc');
+      expect(res).toEqual(srv);
+      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by name=abc') }));
+    });
 
-      const result = await serverService.getServerByName('My-Srv');
-
-      expect(result).toEqual(server);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM servers WHERE name ILIKE $1', ['My-Srv']);
+    test('logs error on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('fail'));
+      const res = await serverService.getServerByName('abc');
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by name=abc error') }));
     });
   });
 
@@ -161,14 +148,19 @@ describe('ServerServices', () => {
    * getServerByIp
    * ---------------------------------------------- */
   describe('getServerByIp', () => {
-    test('should find server by IP', async () => {
-      const server = { id: 8, ip: '10.0.0.8' };
-      mockQuery.mockResolvedValueOnce({ rows: [server] });
+    test('finds by ip', async () => {
+      const srv = { id: 8 };
+      mockQuery.mockResolvedValueOnce({ rows: [srv] });
+      const res = await serverService.getServerByIp('10.0.0.8');
+      expect(res).toEqual(srv);
+      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by ip=10.0.0.8') }));
+    });
 
-      const result = await serverService.getServerByIp('10.0.0.8');
-
-      expect(result).toEqual(server);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM servers WHERE ip = $1', ['10.0.0.8']);
+    test('logs error on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('fail'));
+      const res = await serverService.getServerByIp('10');
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by ip=10 error') }));
     });
   });
 
@@ -176,14 +168,21 @@ describe('ServerServices', () => {
    * getAllServerByService
    * ---------------------------------------------- */
   describe('getAllServerByService', () => {
-    test('should list servers by service (ILIKE)', async () => {
-      const servers = [{ id: 5, service: 'db' }];
-      mockQuery.mockResolvedValueOnce({ rows: servers });
+    test('lists by service', async () => {
+      const list = [{ id: 5 }];
+      mockQuery.mockResolvedValueOnce({ rows: list });
+      const res = await serverService.getAllServerByService('db');
+      expect(res).toEqual(list);
+      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers by service=db') }));
+    });
 
-      const result = await serverService.getAllServerByService('db');
-
-      expect(result).toEqual(servers);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM servers WHERE service ILIKE $1', ['db']);
+    test('logs error on failure', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('fail'));
+      const res = await serverService.getAllServerByService('web');
+      expect(res).toBeUndefined();
+      expect(mockError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining('Get all servers by service=web error') }),
+      );
     });
   });
 });

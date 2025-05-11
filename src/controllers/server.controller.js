@@ -92,7 +92,7 @@ export const getServerController = async (req, res) => {
     const server = await getServer(id);
     res.status(201).json(server);
   } catch (error) {
-    res.status(500).json({ error: `Can not get server` });
+    res.status(500).json({ error: `Can not get server by id` });
   }
 };
 
@@ -114,7 +114,7 @@ export const getServerByNameController = async (req, res) => {
     const server = await getServerByName(name);
     res.status(201).json(server);
   } catch (error) {
-    res.status(500).json({ error: `Can not get server` });
+    res.status(500).json({ error: `Can not get server by name` });
   }
 };
 
@@ -127,7 +127,7 @@ export const getServerByIpController = async (req, res) => {
     const server = await getServerByIp(ip);
     res.status(201).json(server);
   } catch (error) {
-    res.status(500).json({ error: `Can not get server` });
+    res.status(500).json({ error: `Can not get server by ip` });
   }
 };
 
@@ -140,6 +140,6 @@ export const getAllServerByServiceController = async (req, res) => {
     const servers = await getAllServerByService(service);
     res.status(201).json(servers);
   } catch (error) {
-    res.status(500).json({ error: `Can not get server` });
+    res.status(500).json({ error: `Can not get server by service` });
   }
 };

@@ -189,6 +189,16 @@ describe('updateServerController', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mockUpdateServer).not.toHaveBeenCalled();
   });
+
+  test('should respond 500 on service error', async () => {
+    req.body = { ...body };
+    mockUpdateServer.mockRejectedValue(new Error('fail'));
+
+    await updateServerController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Can not update server' });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -213,6 +223,16 @@ describe('getServerController', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mockGetServer).not.toHaveBeenCalled();
+  });
+
+  test('returns 500 on service error', async () => {
+    mockGetServer.mockRejectedValue(new Error('fail'));
+    req.body = { id: 1 };
+
+    await getServerController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by id' });
   });
 });
 
@@ -264,6 +284,16 @@ describe('getServerByNameController', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mockGetServerByName).not.toHaveBeenCalled();
   });
+
+  test('returns 500 on service error', async () => {
+    mockGetServerByName.mockRejectedValue(new Error('fail'));
+    req.body = { name: 'srv' };
+
+    await getServerByNameController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by name' });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -289,6 +319,16 @@ describe('getServerByIpController', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mockGetServerByIp).not.toHaveBeenCalled();
   });
+
+  test('returns 500 on service error', async () => {
+    mockGetServerByIp.mockRejectedValue(new Error('fail'));
+    req.body = { ip: '10.0.0.1' };
+
+    await getServerByIpController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by ip' });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -313,5 +353,15 @@ describe('getAllServerByServiceController', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mockGetAllServerByService).not.toHaveBeenCalled();
+  });
+
+  test('returns 500 on service error', async () => {
+    mockGetAllServerByService.mockRejectedValue(new Error('fail'));
+    req.body = { service: 'svc' };
+
+    await getAllServerByServiceController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by service' });
   });
 });
