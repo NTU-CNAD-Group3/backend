@@ -1,8 +1,5 @@
 import { jest } from '@jest/globals';
 
-// ---------------------------------------------------------------------------
-// Mock service layer ---------------------------------------------------------
-// ---------------------------------------------------------------------------
 const mockCreateServer = jest.fn();
 const mockDeleteServer = jest.fn();
 const mockUpdateServer = jest.fn();
@@ -36,9 +33,6 @@ const {
   getAllServerByServiceController,
 } = await import('#src/controllers/server.controller.js');
 
-// ---------------------------------------------------------------------------
-// Helper --------------------------------------------------------------------
-// ---------------------------------------------------------------------------
 let req, res;
 beforeEach(() => {
   req = { body: {}, query: {} };

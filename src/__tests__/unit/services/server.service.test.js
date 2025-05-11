@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
 
-// ---------------- Mock DB & Logger ----------------
 const mockQuery = jest.fn();
 
 await jest.unstable_mockModule('#src/models/db.js', () => ({
@@ -18,10 +17,8 @@ await jest.unstable_mockModule('#src/utils/logger.js', () => ({
   },
 }));
 
-// Import *after* mocks are set up
 const serverService = (await import('#src/services/server.service.js')).default;
 
-// ---------------- Test Suite ----------------
 describe('ServerServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
