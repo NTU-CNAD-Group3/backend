@@ -211,8 +211,8 @@ class IpServices {
       throw error;
     }
   }
-
 }
+
 const ipService = new IpServices();
 
 export default ipService;
