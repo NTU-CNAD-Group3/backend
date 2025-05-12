@@ -150,7 +150,6 @@ class IpServices {
     }
   }
   
-
   async getUsedIp(service) {
     try {
       const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
