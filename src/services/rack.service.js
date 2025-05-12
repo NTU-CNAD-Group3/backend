@@ -90,7 +90,7 @@ class RackServices {
     const query = ` 
       SELECT 
         rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,
-        s.id AS server_id, s.name AS server_name, s.unit
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition,
       FROM rooms r
       LEFT JOIN racks rk ON rk.roomId = r.id
       LEFT JOIN servers s ON s.rackId = rk.id
@@ -110,6 +110,7 @@ class RackServices {
       servers: {},
     };
 
+    const occupied = [];
     for (const row of rows) {
       if (!result.name) {
         result.id = row.rack_id;
@@ -129,8 +130,40 @@ class RackServices {
           id: row.server_id,
           name: row.server_name,
         };
+
+        if (row.serverfrontposition != null && row.serverbackposition != null) {
+          occupied.push([Number(row.serverfrontposition), Number(row.serverbackposition)]);
+        }
       }
     }
+
+    if (result.height) {
+      // 若沒有伺服器直接等於機櫃高度
+      if (occupied.length === 0) {
+        result.maxEmpty = result.height;
+      } else {
+        // 依 frontPosition 排序
+        occupied.sort((a, b) => a[0] - b[0]);
+
+        // 計算起始空隙
+        let maxGap = occupied[0][0] - 1; // 我先當position >= 1
+
+        // 計算中間空隙
+        for (let i = 1; i < occupied.length; i++) {
+          const gap = occupied[i][0] - occupied[i - 1][1] - 1;
+          if (gap > maxGap) maxGap = gap;
+        }
+
+        // 計算結尾空隙
+        const tailGap = result.height - occupied[occupied.length - 1][1];
+        if (tailGap > maxGap) maxGap = tailGap;
+
+        result.maxEmpty = maxGap;
+      }
+    }
+
+    // update maxEmpty
+    await pool.query('UPDATE racks SET maxEmpty = $1 WHERE id = $2', [result.maxEmpty, rackId]);
 
     logger.info({ message: `msg=Rack ${rackId} get` });
     return result;

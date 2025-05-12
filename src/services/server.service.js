@@ -21,6 +21,7 @@ class ServerServices {
       logger.error({
         message: `msg=Server create name=${name} error error=${error}`,
       });
+      throw error; // 上面的error好像會被catch到這邊
     }
   }
 
@@ -79,6 +80,44 @@ class ServerServices {
     } catch (error) {
       logger.error({
         message: `msg=Get all servers error error=${error}`,
+      });
+    }
+  }
+
+  async getServerByName(name) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE name ILIKE $1', [name]);
+      logger.info({ message: `msg=Get server by name=${name}` });
+      return result.rows[0];
+    } catch (error) {
+      logger.error({
+        message: `msg=Get server by name=${name} error error=${error}`,
+      });
+    }
+  }
+
+  async getServerByIp(ip) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE ip = $1', [ip]);
+      logger.info({
+        message: `msg=Get server by ip=${ip}`,
+      });
+      return result.rows[0];
+    } catch (error) {
+      logger.error({
+        message: `msg=Get server by ip=${ip} error error=${error}`,
+      });
+    }
+  }
+
+  async getAllServerByService(service) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE service ILIKE $1', [service]);
+      logger.info({ message: `msg=Get all servers by service=${service}` });
+      return result.rows;
+    } catch (error) {
+      logger.error({
+        message: `msg=Get all servers by service=${service} error error=${error}`,
       });
     }
   }

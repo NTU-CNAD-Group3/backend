@@ -83,7 +83,7 @@ describe('RackServices', () => {
   });
 
   describe('getRack', () => {
-    test('should return rack info with servers', async () => {
+    test('should return rack info with servers and recomputed maxEmpty', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fabs exists
         .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // fabs id
@@ -93,13 +93,15 @@ describe('RackServices', () => {
             {
               rack_id: 1,
               rack_name: 'Rack A',
-              maxempty: 42,
+              maxempty: 999, // will be overwritten by recompute
               height: 42,
               service: 'Service A',
               createdat: new Date(),
               updatedat: new Date(),
               server_id: 10,
               server_name: 'Server X',
+              serverfrontposition: 5,
+              serverbackposition: 10,
             },
           ],
         });
@@ -108,6 +110,8 @@ describe('RackServices', () => {
 
       expect(result.name).toBe('Rack A');
       expect(result.servers.server10).toEqual({ id: 10, name: 'Server X' });
+      // 新 maxEmpty = max( (5-1), 42-10) = 32
+      expect(result.maxEmpty).toBe(32);
       expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack 1 get') }));
     });
 
@@ -119,7 +123,7 @@ describe('RackServices', () => {
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Fab not found') }));
     });
 
-    test('should return rack info with no servers', async () => {
+    test('should return rack info with no servers and maxEmpty = height', async () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fabs exists
         .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // fabs id
@@ -129,12 +133,14 @@ describe('RackServices', () => {
             {
               rack_id: 1,
               rack_name: 'Rack A',
-              maxempty: 42,
+              maxempty: 0, // will be overwritten by recompute
               height: 42,
               service: 'Service A',
               createdat: new Date(),
               updatedat: new Date(),
               server_id: null, // no server
+              serverfrontposition: null,
+              serverbackposition: null,
             },
           ],
         });
@@ -144,6 +150,7 @@ describe('RackServices', () => {
       expect(result.name).toBe('Rack A');
       expect(result.servers).toEqual({});
       expect(result.serverNum).toBe(0);
+      expect(result.maxEmpty).toBe(42); // 無伺服器 → 最大空間 = 機櫃高度
     });
   });
 
