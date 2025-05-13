@@ -9,14 +9,8 @@ export const assignController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const assignedIp = await assign(service);
-    res.status(201).json({ data: assignedIp, message: 'Assigned' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const assignedIp = await assign(service);
+  res.status(201).json({ data: assignedIp, message: 'Assigned' });
 };
 
 export const createIpPoolController = async (req, res) => {
@@ -26,14 +20,8 @@ export const createIpPoolController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const ipPool = await createIpPool(service, cidrBlock);
-    res.status(201).json({ data: ipPool, message: 'Created' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const ipPool = await createIpPool(service, cidrBlock);
+  res.status(201).json({ data: ipPool, message: 'Created' });
 };
 
 export const releaseController = async (req, res) => {
@@ -43,14 +31,8 @@ export const releaseController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const releasedIP = await release(id);
-    res.status(200).json({ data: releasedIP, message: 'Released' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const releasedIP = await release(id);
+  res.status(200).json({ data: releasedIP, message: 'Released' });
 };
 
 export const getAllIpController = async (req, res) => {
@@ -60,14 +42,8 @@ export const getAllIpController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const allIPs = await getAllIp(service);
-    res.status(200).json({ data: allIPs, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const allIPs = await getAllIp(service);
+  res.status(200).json({ data: allIPs, message: 'OK' });
 };
 
 export const getUsedIpController = async (req, res) => {
@@ -77,14 +53,8 @@ export const getUsedIpController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const usedIPs = await getUsedIp(service);
-    res.status(200).json({ data: usedIPs, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const usedIPs = await getUsedIp(service);
+  res.status(200).json({ data: usedIPs, message: 'OK' });
 };
 
 export const getIpPoolController = async (req, res) => {
@@ -94,23 +64,11 @@ export const getIpPoolController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const ipPool = await getIpPool(service);
-    res.status(200).json({ data: ipPool, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const ipPool = await getIpPool(service);
+  res.status(200).json({ data: ipPool, message: 'OK' });
 }
 
 export const getAllIpPoolsController = async (req, res) => {
-  try {
-    const ipPools = await getAllIpPools();
-    res.status(200).json({ data: ipPools, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const ipPools = await getAllIpPools();
+  res.status(200).json({ data: ipPools, message: 'OK' });
 }

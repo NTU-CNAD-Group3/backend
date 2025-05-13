@@ -111,6 +111,44 @@ class ServerServices {
       });
     }
   }
+
+  async getServerByName(name) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE name ILIKE $1', [name]);
+      logger.info({ message: `msg=Get server by name=${name}` });
+      return result.rows[0];
+    } catch (error) {
+      logger.error({
+        message: `msg=Get server by name=${name} error error=${error}`,
+      });
+    }
+  }
+
+  async getServerByIp(ip) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE ip = $1', [ip]);
+      logger.info({
+        message: `msg=Get server by ip=${ip}`,
+      });
+      return result.rows[0];
+    } catch (error) {
+      logger.error({
+        message: `msg=Get server by ip=${ip} error error=${error}`,
+      });
+    }
+  }
+
+  async getAllServerByService(service) {
+    try {
+      const result = await pool.query('SELECT * FROM servers WHERE service ILIKE $1', [service]);
+      logger.info({ message: `msg=Get all servers by service=${service}` });
+      return result.rows;
+    } catch (error) {
+      logger.error({
+        message: `msg=Get all servers by service=${service} error error=${error}`,
+      });
+    }
+  }
 }
 const serverService = new ServerServices();
 

@@ -1,6 +1,7 @@
 import serverService from '#src/services/server.service.js';
 
-const { createServer, deleteServer, updateServer, getServer, getAllServers } = serverService;
+const { createServer, deleteServer, updateServer, getServer, getAllServers, getServerByName, getServerByIp, getAllServerByService } =
+  serverService;
 
 export const createServerController = async (req, res) => {
   const { name, service, unit, fabId, roomId, rackId, frontPosition, backPosition } = req.body;
@@ -18,14 +19,8 @@ export const createServerController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const createdServer = await createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition);
-    res.status(201).json({ data: createdServer, message: 'Created' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const createdServer = await createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition);
+  res.status(201).json({ data: createdServer, message: 'Created' });
 };
 
 export const deleteServerController = async (req, res) => {
@@ -35,14 +30,8 @@ export const deleteServerController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const deletedServer = await deleteServer(id);
-    res.status(201).json({ data: deletedServer, message: 'Deleted' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const deletedServer = await deleteServer(id);
+  res.status(201).json({ data: deletedServer, message: 'Deleted' });
 };
 
 export const updateServerController = async (req, res) => {
@@ -65,27 +54,21 @@ export const updateServerController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const updatedServer = await updateServer(
-      id,
-      name,
-      service,
-      ip,
-      unit,
-      fabId,
-      roomId,
-      rackId,
-      ipPoolId,
-      frontPosition,
-      backPosition,
-      healthy,
-    );
-    res.status(201).json({ data: updatedServer, message: 'Updated' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const updatedServer = await updateServer(
+    id,
+    name,
+    service,
+    ip,
+    unit,
+    fabId,
+    roomId,
+    rackId,
+    ipPoolId,
+    frontPosition,
+    backPosition,
+    healthy,
+  );
+  res.status(201).json({ data: updatedServer, message: 'Updated' });
 };
 
 export const getServerController = async (req, res) => {
@@ -95,23 +78,38 @@ export const getServerController = async (req, res) => {
     error.status = 400;
     throw error;
   }
-  try {
-    const server = await getServer(id);
-    res.status(201).json({ data: server, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
-  }
+  const server = await getServer(id);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getAllServersController = async (req, res) => {
-  try {
-    const servers = await getAllServers();
-    res.status(201).json({ data: servers, message: 'OK' });
-  } catch (e) {
-    const error = e; 
-    error.status = 500;
-    throw error;
+  const servers = await getAllServers();
+  res.status(201).json({ data: servers, message: 'OK' });
+};
+
+export const getServerByNameController = async (req, res) => {
+  const { name } = req.body;
+  if (name == null) {
+    return res.status(400).json({ error: 'Server name are required' });
   }
+  const server = await getServerByName(name);
+  res.status(201).json(server);
+};
+
+export const getServerByIpController = async (req, res) => {
+  const { ip } = req.body;
+  if (ip == null) {
+    return res.status(400).json({ error: 'Server IP are required' });
+  }
+  const server = await getServerByIp(ip);
+  res.status(201).json(server);
+};
+
+export const getAllServerByServiceController = async (req, res) => {
+  const { service } = req.body;
+  if (service == null) {
+    return res.status(400).json({ error: 'Server service are required' });
+  }
+  const servers = await getAllServerByService(service);
+  res.status(201).json(servers);
 };

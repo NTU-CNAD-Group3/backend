@@ -76,12 +76,6 @@ describe('IP Controllers - Unit Tests', () => {
       mockReq.body = {};
       await expect(assignController(mockReq, mockRes)).rejects.toThrow('Service are required');
     });
-
-    it('should throw 500 if assign fails', async () => {
-      mockReq.body = { service: 'IPTest' };
-      mockAssign.mockRejectedValue(new Error('Service failed'));
-      await expect(assignController(mockReq, mockRes)).rejects.toThrow('Service failed');
-    });
   });
 
   describe('createIpPoolController', () => {
@@ -101,12 +95,6 @@ describe('IP Controllers - Unit Tests', () => {
     it('should throw 400 if params missing', async () => {
       mockReq.body = {};
       await expect(createIpPoolController(mockReq, mockRes)).rejects.toThrow('Service, cidrBlock are required');
-    });
-
-    it('should throw 500 if createIpPool fails', async () => {
-      mockReq.body = { service: 'IPTest', cidrBlock: '10.0.0.0/24' };
-      mockCreateIpPool.mockRejectedValue(new Error('Service failed'));
-      await expect(createIpPoolController(mockReq, mockRes)).rejects.toThrow('Service failed');
     });
   });
 
@@ -128,12 +116,6 @@ describe('IP Controllers - Unit Tests', () => {
       mockReq.params = {};
       await expect(releaseController(mockReq, mockRes)).rejects.toThrow('Server ID are required');
     });
-
-    it('should throw 500 if release fails', async () => {
-      mockReq.params = { id: '123' };
-      mockRelease.mockRejectedValue(new Error('Service failed'));
-      await expect(releaseController(mockReq, mockRes)).rejects.toThrow('Service failed');
-    });
   });
 
   describe('getAllIpController', () => {
@@ -154,12 +136,6 @@ describe('IP Controllers - Unit Tests', () => {
       mockReq.query = {};
       await expect(getAllIpController(mockReq, mockRes)).rejects.toThrow('Service are required');
     });
-
-    it('should throw 500 if service fails', async () => {
-      mockReq.query = { service: 'IPTest' };
-      mockGetAllIp.mockRejectedValue(new Error('Service failed'));
-      await expect(getAllIpController(mockReq, mockRes)).rejects.toThrow('Service failed');
-    });
   });
 
   describe('getUsedIpController', () => {
@@ -179,12 +155,6 @@ describe('IP Controllers - Unit Tests', () => {
     it('should throw 400 if service missing', async () => {
       mockReq.query = {};
       await expect(getUsedIpController(mockReq, mockRes)).rejects.toThrow('Service are required');
-    });
-
-    it('should throw 500 if service fails', async () => {
-      mockReq.query = { service: 'IPTest' };
-      mockGetUsedIp.mockRejectedValue(new Error('Service failed'));
-      await expect(getUsedIpController(mockReq, mockRes)).rejects.toThrow('Service failed');
     });
   });
 
@@ -207,12 +177,6 @@ describe('IP Controllers - Unit Tests', () => {
       mockReq.query = {};
       await expect(getIpPoolController(mockReq, mockRes)).rejects.toThrow('Service are required');
     });
-
-    it('should throw 500 if service fails', async () => {
-      mockReq.query = { service: 'IPTest' };
-      mockGetIpPool.mockRejectedValue(new Error('Service failed'));
-      await expect(getIpPoolController(mockReq, mockRes)).rejects.toThrow('Service failed');
-    });
   });
 
   describe('getAllIpPoolsController', () => {
@@ -226,11 +190,6 @@ describe('IP Controllers - Unit Tests', () => {
       expect(ipService.getAllIpPools).toHaveBeenCalledTimes(1);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({ data: IpPools, message: 'OK' });
-    });
-
-    it('should throw 500 if service fails', async () => {
-      mockGetAllIpPools.mockRejectedValue(new Error('Service failed'));
-      await expect(getAllIpPoolsController(mockReq, mockRes)).rejects.toThrow('Service failed');
     });
   });
 });
