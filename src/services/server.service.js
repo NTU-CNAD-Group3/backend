@@ -7,15 +7,17 @@ class ServerServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const [ip, ipPoolId] = await ipService.assign(service);
 
       const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3))`;
-      const overlapResult = await pool.query(overlapQuery, [rackId, frontPosition, backPosition]);
+      const overlapResult = await client.query(overlapQuery, [rackId, frontPosition, backPosition]);
 
       if (overlapResult.rows.length > 0) {
         throw new Error('Position already occupied in this rack.');
       }
-      const result = await pool.query(
+
+      const [ip, ipPoolId] = await ipService.assign(service);
+
+      const result = await client.query(
         'INSERT INTO servers (name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
         [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition],
       );
@@ -46,7 +48,7 @@ class ServerServices {
       await client.query('BEGIN');
 
       await ipService.release(id);
-      const result = await pool.query('DELETE FROM servers WHERE id = $1 RETURNING *', [id]);
+      const result = await client.query('DELETE FROM servers WHERE id = $1 RETURNING *', [id]);
       logger.info({
         message: `msg=Server ${id} deleted`,
       });

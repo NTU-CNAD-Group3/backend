@@ -90,26 +90,32 @@ export const getAllServersController = async (req, res) => {
 export const getServerByNameController = async (req, res) => {
   const { name } = req.body;
   if (name == null) {
-    return res.status(400).json({ error: 'Server name are required' });
+    const error = new Error('Server name are required');
+    error.status = 400;
+    throw error;
   }
   const server = await getServerByName(name);
-  res.status(201).json(server);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getServerByIpController = async (req, res) => {
   const { ip } = req.body;
   if (ip == null) {
-    return res.status(400).json({ error: 'Server IP are required' });
+    const error = new Error('Server IP are required');
+    error.status = 400;
+    throw error;
   }
   const server = await getServerByIp(ip);
-  res.status(201).json(server);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getAllServerByServiceController = async (req, res) => {
   const { service } = req.body;
   if (service == null) {
-    return res.status(400).json({ error: 'Server service are required' });
+    const error = new Error('Server service are required');
+    error.status = 400;
+    throw error;
   }
   const servers = await getAllServerByService(service);
-  res.status(201).json(servers);
+  res.status(201).json({ data: servers, message: 'OK' });
 };
