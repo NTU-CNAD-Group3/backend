@@ -5,8 +5,7 @@
 The Backend service contains the primary logic of the application. It is responsible for handling fab, rack, and server management. 
 
 ## 剩下要做的
-把所有API完成
-比較完整的監測系統，現在有一個metrics可以測
+把所有API完成 比較完整的監測系統，現在有一個metrics可以測
 
 ## Prerequisites
 

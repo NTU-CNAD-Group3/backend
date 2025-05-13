@@ -1,41 +1,71 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
+import ipService from '#src/services/ip.service.js';
+
 class ServerServices {
-  async createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) {
+  async createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition) {
+    const client = await pool.connect();
     try {
+      await client.query('BEGIN');
+
       const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3))`;
-      const overlapResult = await pool.query(overlapQuery, [rackId, frontPosition, backPosition]);
+      const overlapResult = await client.query(overlapQuery, [rackId, frontPosition, backPosition]);
 
       if (overlapResult.rows.length > 0) {
         throw new Error('Position already occupied in this rack.');
       }
-      const result = await pool.query(
+
+      const [ip, ipPoolId] = await ipService.assign(service);
+
+      const result = await client.query(
         'INSERT INTO servers (name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
         [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition],
       );
       logger.info({
         message: `msg=Server created name=${name}`,
       });
-      return result.rows[0];
+      const server = result.rows[0];
+
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=Server ${name} created`,
+      });
+      return server;
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error({
         message: `msg=Server create name=${name} error error=${error}`,
       });
-      throw error; // 上面的error好像會被catch到這邊
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
   async deleteServer(id) {
+    const client = await pool.connect();
     try {
-      const result = await pool.query('DELETE FROM servers WHERE id = $1 RETURNING *', [id]);
+      await client.query('BEGIN');
+
+      await ipService.release(id);
+      const result = await client.query('DELETE FROM servers WHERE id = $1 RETURNING *', [id]);
       logger.info({
         message: `msg=Server ${id} deleted`,
       });
-      return result.rows[0];
-    } catch (error) {
-      logger.error({
-        message: `msg=Server ${id} deleted error error=${error}`,
+      const server = result.rows[0];
+
+      await client.query('COMMIT');
+      logger.info({
+        message: `msg=Server ${id} deleted`,
       });
+      return server;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({
+        message: `msg=Server ${id} deleted error=${error}`,
+      });
+    } finally {
+      client.release();
     }
   }
 

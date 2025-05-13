@@ -4,42 +4,34 @@ const { createServer, deleteServer, updateServer, getServer, getAllServers, getS
   serverService;
 
 export const createServerController = async (req, res) => {
-  const { name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition } = req.body;
+  const { name, service, unit, fabId, roomId, rackId, frontPosition, backPosition } = req.body;
   if (
     name == null ||
     service == null ||
-    ip == null ||
     unit == null ||
     fabId == null ||
     roomId == null ||
     rackId == null ||
-    ipPoolId == null ||
     frontPosition == null ||
     backPosition == null
   ) {
-    return res
-      .status(400)
-      .json({ error: 'name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition are required' });
+    const error = new Error('Name, service, unit, fabId, roomId, rackId, frontPosition, backPosition are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const createdServer = await createServer(name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition);
-    res.status(201).json(createdServer);
-  } catch (error) {
-    res.status(500).json({ error: `Can not assign IP` });
-  }
+  const createdServer = await createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition);
+  res.status(201).json({ data: createdServer, message: 'Created' });
 };
 
 export const deleteServerController = async (req, res) => {
   const { id } = req.body;
   if (id == null) {
-    return res.status(400).json({ error: 'Server ID are required' });
+    const error = new Error('Server ID are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const deletedServer = await deleteServer(id);
-    res.status(201).json(deletedServer);
-  } catch (error) {
-    res.status(500).json({ error: `Can not delete server` });
-  }
+  const deletedServer = await deleteServer(id);
+  res.status(201).json({ data: deletedServer, message: 'Deleted' });
 };
 
 export const updateServerController = async (req, res) => {
@@ -58,88 +50,72 @@ export const updateServerController = async (req, res) => {
     backPosition == null ||
     healthy == null
   ) {
-    return res
-      .status(400)
-      .json({ error: 'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required' });
+    const error = new Error('id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const updatedServer = await updateServer(
-      id,
-      name,
-      service,
-      ip,
-      unit,
-      fabId,
-      roomId,
-      rackId,
-      ipPoolId,
-      frontPosition,
-      backPosition,
-      healthy,
-    );
-    res.status(201).json(updatedServer);
-  } catch (error) {
-    res.status(500).json({ error: `Can not update server` });
-  }
+  const updatedServer = await updateServer(
+    id,
+    name,
+    service,
+    ip,
+    unit,
+    fabId,
+    roomId,
+    rackId,
+    ipPoolId,
+    frontPosition,
+    backPosition,
+    healthy,
+  );
+  res.status(201).json({ data: updatedServer, message: 'Updated' });
 };
 
 export const getServerController = async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   if (id == null) {
-    return res.status(400).json({ error: 'Server ID are required' });
+    const error = new Error('Server ID are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const server = await getServer(id);
-    res.status(201).json(server);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get server by id` });
-  }
+  const server = await getServer(id);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getAllServersController = async (req, res) => {
-  try {
-    const servers = await getAllServers();
-    res.status(201).json(servers);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get all servers` });
-  }
+  const servers = await getAllServers();
+  res.status(201).json({ data: servers, message: 'OK' });
 };
 
 export const getServerByNameController = async (req, res) => {
   const { name } = req.body;
   if (name == null) {
-    return res.status(400).json({ error: 'Server name are required' });
+    const error = new Error('Server name are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const server = await getServerByName(name);
-    res.status(201).json(server);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get server by name` });
-  }
+  const server = await getServerByName(name);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getServerByIpController = async (req, res) => {
   const { ip } = req.body;
   if (ip == null) {
-    return res.status(400).json({ error: 'Server IP are required' });
+    const error = new Error('Server IP are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const server = await getServerByIp(ip);
-    res.status(201).json(server);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get server by ip` });
-  }
+  const server = await getServerByIp(ip);
+  res.status(201).json({ data: server, message: 'OK' });
 };
 
 export const getAllServerByServiceController = async (req, res) => {
   const { service } = req.body;
   if (service == null) {
-    return res.status(400).json({ error: 'Server service are required' });
+    const error = new Error('Server service are required');
+    error.status = 400;
+    throw error;
   }
-  try {
-    const servers = await getAllServerByService(service);
-    res.status(201).json(servers);
-  } catch (error) {
-    res.status(500).json({ error: `Can not get server by service` });
-  }
+  const servers = await getAllServerByService(service);
+  res.status(201).json({ data: servers, message: 'OK' });
 };

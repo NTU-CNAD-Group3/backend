@@ -50,12 +50,10 @@ describe('createServerController', () => {
   const validBody = {
     name: 'srv‑A',
     service: 'db',
-    ip: '10.0.0.1',
     unit: 1,
     fabId: 1,
     roomId: 1,
     rackId: 1,
-    ipPoolId: 1,
     frontPosition: 1,
     backPosition: 2,
   };
@@ -70,36 +68,22 @@ describe('createServerController', () => {
     expect(mockCreateServer).toHaveBeenCalledWith(
       validBody.name,
       validBody.service,
-      validBody.ip,
       validBody.unit,
       validBody.fabId,
       validBody.roomId,
       validBody.rackId,
-      validBody.ipPoolId,
       validBody.frontPosition,
       validBody.backPosition,
     );
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(created);
+    expect(res.json).toHaveBeenCalledWith({ data: created, message: 'Created' });
   });
 
   test('should respond 400 if required fields missing', async () => {
     req.body = { ...validBody, name: null };
-    await createServerController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringContaining('name, service') }));
+    await expect(createServerController(req, res)).rejects.toThrow('Name, service, unit, fabId, roomId, rackId, frontPosition, backPosition are required');
     expect(mockCreateServer).not.toHaveBeenCalled();
-  });
-
-  test('should respond 500 if service throws', async () => {
-    req.body = { ...validBody };
-    mockCreateServer.mockRejectedValue(new Error('DB fail'));
-
-    await createServerController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not assign IP' });
   });
 });
 
@@ -116,26 +100,14 @@ describe('deleteServerController', () => {
 
     expect(mockDeleteServer).toHaveBeenCalledWith(9);
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(deleted);
+    expect(res.json).toHaveBeenCalledWith({ data: deleted, message: 'Deleted' });
   });
 
   test('should respond 400 if id missing', async () => {
     req.body = { id: null };
-    await deleteServerController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Server ID are required' });
+    await expect(deleteServerController(req, res)).rejects.toThrow('Server ID are required');
     expect(mockDeleteServer).not.toHaveBeenCalled();
-  });
-
-  test('should respond 500 on service error', async () => {
-    req.body = { id: 1 };
-    mockDeleteServer.mockRejectedValue(new Error('fail'));
-
-    await deleteServerController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not delete server' });
   });
 });
 
@@ -179,25 +151,14 @@ describe('updateServerController', () => {
       body.healthy,
     );
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(body);
+    expect(res.json).toHaveBeenCalledWith({ data: body, message: 'Updated' });
   });
 
   test('should respond 400 if required field missing', async () => {
     req.body = { ...body, name: null };
-    await updateServerController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
+    
+    await expect(updateServerController(req, res)).rejects.toThrow('id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required');
     expect(mockUpdateServer).not.toHaveBeenCalled();
-  });
-
-  test('should respond 500 on service error', async () => {
-    req.body = { ...body };
-    mockUpdateServer.mockRejectedValue(new Error('fail'));
-
-    await updateServerController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not update server' });
   });
 });
 
@@ -209,30 +170,19 @@ describe('getServerController', () => {
     const server = { id: 3 };
     mockGetServer.mockResolvedValue(server);
 
-    req.body = { id: 3 };
+    req.params = { id: 3 };
     await getServerController(req, res);
 
     expect(mockGetServer).toHaveBeenCalledWith(3);
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(server);
+    expect(res.json).toHaveBeenCalledWith({ data: server, message: 'OK' });
   });
 
   test('should respond 400 if id missing', async () => {
-    req.body = { id: null };
-    await getServerController(req, res);
+    req.params = { id: null };
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    await expect(getServerController(req, res)).rejects.toThrow('Server ID are required');
     expect(mockGetServer).not.toHaveBeenCalled();
-  });
-
-  test('returns 500 on service error', async () => {
-    mockGetServer.mockRejectedValue(new Error('fail'));
-    req.body = { id: 1 };
-
-    await getServerController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by id' });
   });
 });
 
@@ -248,16 +198,7 @@ describe('getAllServersController', () => {
 
     expect(mockGetAllServers).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(all);
-  });
-
-  test('should respond 500 on service error', async () => {
-    mockGetAllServers.mockRejectedValue(new Error('fail'));
-
-    await getAllServersController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get all servers' });
+    expect(res.json).toHaveBeenCalledWith({ data: all, message: 'OK' });
   });
 });
 
@@ -274,25 +215,14 @@ describe('getServerByNameController', () => {
 
     expect(mockGetServerByName).toHaveBeenCalledWith('srv‑C');
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(srv);
+    expect(res.json).toHaveBeenCalledWith({ data: srv, message: 'OK' });
   });
 
   test('should respond 400 if name missing', async () => {
     req.body = {};
-    await getServerByNameController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    await expect(getServerByNameController(req, res)).rejects.toThrow('Server name are required');
     expect(mockGetServerByName).not.toHaveBeenCalled();
-  });
-
-  test('returns 500 on service error', async () => {
-    mockGetServerByName.mockRejectedValue(new Error('fail'));
-    req.body = { name: 'srv' };
-
-    await getServerByNameController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by name' });
   });
 });
 
@@ -309,25 +239,14 @@ describe('getServerByIpController', () => {
 
     expect(mockGetServerByIp).toHaveBeenCalledWith('10.0.0.5');
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(srv);
+    expect(res.json).toHaveBeenCalledWith({ data: srv, message: 'OK' });
   });
 
   test('should respond 400 if ip missing', async () => {
     req.body = {};
-    await getServerByIpController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    await expect(getServerByIpController(req, res)).rejects.toThrow('Server IP are required');
     expect(mockGetServerByIp).not.toHaveBeenCalled();
-  });
-
-  test('returns 500 on service error', async () => {
-    mockGetServerByIp.mockRejectedValue(new Error('fail'));
-    req.body = { ip: '10.0.0.1' };
-
-    await getServerByIpController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by ip' });
   });
 });
 
@@ -344,24 +263,13 @@ describe('getAllServerByServiceController', () => {
 
     expect(mockGetAllServerByService).toHaveBeenCalledWith('db');
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(list);
+    expect(res.json).toHaveBeenCalledWith({ data: list, message: 'OK' });
   });
 
   test('should respond 400 if service missing', async () => {
     req.body = {};
-    await getAllServerByServiceController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    await expect(getAllServerByServiceController(req, res)).rejects.toThrow('Server service are required');
     expect(mockGetAllServerByService).not.toHaveBeenCalled();
-  });
-
-  test('returns 500 on service error', async () => {
-    mockGetAllServerByService.mockRejectedValue(new Error('fail'));
-    req.body = { service: 'svc' };
-
-    await getAllServerByServiceController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Can not get server by service' });
   });
 });
