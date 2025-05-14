@@ -30,7 +30,6 @@ class ServerServices {
       }
 
       const [ip, ipPoolId] = await ipService.assign(client, service);
-      await client.query('UPDATE racks SET serverNum = serverNum + 1 WHERE id=$1;', [rackId]);
       const result = await client.query(
         'INSERT INTO servers (name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
         [name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition],
@@ -63,7 +62,6 @@ class ServerServices {
       const lockKey = 4000000000000000 + rackId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
       await ipService.release(client, id);
-      await client.query('UPDATE racks SET serverNum = serverNum - 1 WHERE id=$1;', [rackId]);
       await client.query('DELETE FROM servers WHERE id = $1', [id]);
       logger.info({
         message: `msg=Server ${id} deleted`,
@@ -103,9 +101,6 @@ class ServerServices {
         error.status = 400;
         throw error;
       }
-      const content = await client.query(`SELECT rackId,service FROM servers WHERE id = $1`, [id]);
-      await client.query('UPDATE racks SET serverNum = serverNum - 1 WHERE id = $1;', [content.rows.rackId]);
-      await client.query('UPDATE racks SET serverNum = serverNum + 1 WHERE id = $1;', [content.rows.newRackId]);
       await pool.query(
         'UPDATE servers SET  service = $1, fabId = $2, roomId = $3, rackId = $4,  frontPosition = $5, backPosition = $6 WHERE id = $8',
         [newService, newFabId, newRoomId, newRackId, frontPosition, backPosition, id],
