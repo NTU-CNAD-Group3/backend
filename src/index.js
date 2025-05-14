@@ -38,11 +38,6 @@ app.use((req, res, next) => {
         message: `msg=Received response method=${req.method} path=${route} ip=${req.ip} status=${res.statusCode} url=${req.originalUrl}`,
       });
     }
-    httpRequestCounter.inc({
-      method: req.method,
-      route,
-      status_code: res.statusCode,
-    });
   });
   next();
 });
