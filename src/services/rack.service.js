@@ -89,7 +89,7 @@ class RackServices {
     }
     const query = ` 
       SELECT 
-        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,rk.updatedAt,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.height,rk.updatedAt,
         s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition, s.updatedAt as serverUpdateTime
       FROM rooms r
       LEFT JOIN racks rk ON rk.roomId = r.id

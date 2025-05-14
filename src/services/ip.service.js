@@ -23,7 +23,9 @@ class IpServices {
     }
 
     if (!ip) {
-      throw new Error(`No available IP found for service=${service}`);
+      const error = new Error(`No available IP found for service=${service}`);
+      error.status=503;
+      throw error;
     }
 
     const usedIps = poolData.usedips || [];
@@ -47,7 +49,9 @@ class IpServices {
       const overlappingPool = existingPools.rows.find((row) => ipUtils.isOverlap(row.cidr, cidrBlock));
 
       if (overlappingPool) {
-        throw new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
+        const error = new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
+        error.status=503;
+        throw error;
       }
 
       const insertQuery = `
