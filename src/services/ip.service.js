@@ -2,10 +2,9 @@ import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 import ipUtils from '#src/utils/ip.util.js';
 class IpServices {
-  
   async assign(client, service) {
     // 找對應 IP pool
-    
+
     const result = await client.query(`SELECT id FROM ipPools WHERE service = $1`, [service]);
     let poolData;
     let poolId;
@@ -45,9 +44,7 @@ class IpServices {
       await client.query('BEGIN');
 
       const existingPools = await client.query(`SELECT cidr FROM ipPools`);
-      const overlappingPool = existingPools.rows.find(row =>
-        ipUtils.isOverlap(row.cidr, cidrBlock)
-      );
+      const overlappingPool = existingPools.rows.find((row) => ipUtils.isOverlap(row.cidr, cidrBlock));
 
       if (overlappingPool) {
         throw new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
@@ -76,7 +73,7 @@ class IpServices {
   }
 
   async release(client, id) {
-    lockKey = 5000000000000000 + id;
+    const lockKey = 5000000000000000 + id;
     await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
     const serverResult = await client.query(`SELECT * FROM servers WHERE id = $1`, [id]);
     if (serverResult.rows.length === 0) {
@@ -96,8 +93,7 @@ class IpServices {
     const index = usedIps.indexOf(ip);
     if (index !== -1) {
       usedIps.splice(index, 1);
-    }
-    else {
+    } else {
       throw new Error(`IP ${ip} not found in ip pool`);
     }
     await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
@@ -111,7 +107,7 @@ class IpServices {
   async getAllIp(service) {
     try {
       const result = await pool.query('SELECT * FROM ipPools WHERE service = $1', [service]);
-  
+
       let allIps = [];
       for (const row of result.rows) {
         const cidr = row.cidr;
@@ -122,7 +118,7 @@ class IpServices {
       logger.info({
         message: `msg=Get all IPs for service=${service}`,
       });
-  
+
       return allIps;
     } catch (error) {
       logger.error({
@@ -132,7 +128,7 @@ class IpServices {
       throw error;
     }
   }
-  
+
   async getUsedIp(service) {
     try {
       const result = await pool.query(`SELECT * FROM ipPools WHERE service = $1`, [service]);
@@ -150,7 +146,6 @@ class IpServices {
         message: `msg=Get used IPs for service=${service}`,
       });
 
-      
       return usedIps;
     } catch (error) {
       logger.error({

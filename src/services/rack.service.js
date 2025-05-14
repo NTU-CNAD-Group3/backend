@@ -7,7 +7,7 @@ class RackServices {
     try {
       await client.query('BEGIN');
 
-      const lockKey = 3000000000000000+roomId;
+      const lockKey = 3000000000000000 + roomId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
 
       const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
@@ -89,8 +89,8 @@ class RackServices {
     }
     const query = ` 
       SELECT 
-        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,rk.updateAt,
-        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition, s.updateAt as serverUpdateTime,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,rk.updatedAt,
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition, s.updatedAt as serverUpdateTime
       FROM rooms r
       LEFT JOIN racks rk ON rk.roomId = r.id
       LEFT JOIN servers s ON s.rackId = rk.id
@@ -112,7 +112,7 @@ class RackServices {
     let a = new Date('2024-05-10T12:00:00Z');
     let b = new Date('2024-05-11T12:00:00Z');
     let shouldupdate = false;
-    //const occupied = [];
+    // const occupied = [];
     for (const row of rows) {
       if (!result.name) {
         result.id = row.rack_id;
@@ -132,11 +132,11 @@ class RackServices {
         result.servers[serverKey] = {
           id: row.server_id,
           name: row.server_name,
-          serverFrontPosition : row.serverfrontposition,
-          serverBackPosition : row.serverbackposition,
+          serverFrontPosition: row.serverfrontposition,
+          serverBackPosition: row.serverbackposition,
         };
         b = new Date(row.serverUpdateTime);
-        if(a<b){
+        if (a < b) {
           shouldupdate = true;
         }
         // if (row.serverfrontposition != null && row.serverbackposition != null) {
@@ -144,8 +144,8 @@ class RackServices {
         // }
       }
     }
-    if(shouldupdate){
-      const queryGap=`WITH gaps AS (
+    if (shouldupdate) {
+      const queryGap = `WITH gaps AS (
         SELECT
           LAG(backPosition, 1, 0) OVER (ORDER BY frontPosition) AS prev_end,
           frontPosition - LAG(backPosition, 1, 0) OVER (ORDER BY frontPosition) AS gap
@@ -163,14 +163,12 @@ class RackServices {
             ($2 - (SELECT MAX(backPosition) FROM servers WHERE rackId = $1))  -
           )
       END AS maxgap;`;
-      const maxgap= await pool.query(queryGap,[rackId,result.height]);
+      const maxgap = await pool.query(queryGap, [rackId, result.height]);
       result.maxEmpty = maxgap;
 
       // update maxEmpty
       await pool.query('UPDATE racks SET maxEmpty = $1 WHERE id = $2', [rackId, result.maxEmpty]);
-
     }
-    
 
     logger.info({ message: `msg=Rack ${rackId} get` });
     return result;
@@ -194,7 +192,7 @@ class RackServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      lockKey = 3000000000000000 + roomId;
+      const lockKey = 3000000000000000 + roomId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
       const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [id]);
       if (!inTable.rows[0].exists) {

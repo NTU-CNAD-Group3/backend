@@ -29,12 +29,9 @@ class IpUtils {
   async isOverlap(cidr1, cidr2) {
     const block1 = new Netmask(cidr1);
     const block2 = new Netmask(cidr2);
-  
+
     return (
-      block1.contains(block2.base) ||
-      block1.contains(block2.broadcast) ||
-      block2.contains(block1.base) ||
-      block2.contains(block1.broadcast)
+      block1.contains(block2.base) || block1.contains(block2.broadcast) || block2.contains(block1.base) || block2.contains(block1.broadcast)
     );
   }
 }

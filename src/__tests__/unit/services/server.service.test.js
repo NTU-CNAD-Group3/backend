@@ -2,9 +2,9 @@ import { jest } from '@jest/globals';
 
 const mockQuery = jest.fn();
 const mockClient = {
-    query: jest.fn(),
-    release: jest.fn(),
-  };
+  query: jest.fn(),
+  release: jest.fn(),
+};
 jest.unstable_mockModule('#src/models/db.js', () => ({
   pool: {
     query: mockQuery,
@@ -45,7 +45,7 @@ describe('ServerServices', () => {
     test('creates server when rack slot free', async () => {
       const fake = { id: 1, name: 'Server-A' };
 
-      ipService.assign.mockResolvedValueOnce(['10.0.0.1', 1])
+      ipService.assign.mockResolvedValueOnce(['10.0.0.1', 1]);
 
       mockClient.query
         .mockResolvedValueOnce({})
@@ -60,9 +60,7 @@ describe('ServerServices', () => {
     });
 
     test('throws when rack slot overlaps', async () => {
-      mockClient.query
-        .mockResolvedValueOnce({}) 
-        .mockResolvedValueOnce({ rows: [{ id: 99 }] });
+      mockClient.query.mockResolvedValueOnce({}).mockResolvedValueOnce({ rows: [{ id: 99 }] });
       await expect(serverService.createServer(...params)).rejects.toThrow('Position already occupied in this rack.');
       expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server create') }));
     });
@@ -75,7 +73,7 @@ describe('ServerServices', () => {
     test('deletes server and returns row', async () => {
       mockClient.query
         .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({ rows: [{ id: 42 }]})
+        .mockResolvedValueOnce({ rows: [{ id: 42 }] })
         .mockResolvedValueOnce({});
       const res = await serverService.deleteServer(42);
       expect(res.id).toBe(42);

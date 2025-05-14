@@ -244,7 +244,7 @@ class FabServices {
     return result.rows[0];
   }
 
-  async updateFab(id, name, roomNum) {
+  async updateFab(id, name) {
     const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: 'msg=Fab not found' });

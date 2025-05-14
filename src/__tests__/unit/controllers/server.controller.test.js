@@ -82,7 +82,9 @@ describe('createServerController', () => {
   test('should respond 400 if required fields missing', async () => {
     req.body = { ...validBody, name: null };
 
-    await expect(createServerController(req, res)).rejects.toThrow('Name, service, unit, fabId, roomId, rackId, frontPosition, backPosition are required');
+    await expect(createServerController(req, res)).rejects.toThrow(
+      'Name, service, unit, fabId, roomId, rackId, frontPosition, backPosition are required',
+    );
     expect(mockCreateServer).not.toHaveBeenCalled();
   });
 });
@@ -156,8 +158,10 @@ describe('updateServerController', () => {
 
   test('should respond 400 if required field missing', async () => {
     req.body = { ...body, name: null };
-    
-    await expect(updateServerController(req, res)).rejects.toThrow('id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required');
+
+    await expect(updateServerController(req, res)).rejects.toThrow(
+      'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required',
+    );
     expect(mockUpdateServer).not.toHaveBeenCalled();
   });
 });

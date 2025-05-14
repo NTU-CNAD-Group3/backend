@@ -14,7 +14,7 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const lockKey = 2000000000000000+id;
+      const lockKey = 2000000000000000 + id;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
 
       const hasRack = 0;
@@ -141,11 +141,18 @@ class RoomServices {
   }
 
   async deleteRoom(fabName, roomId) {
-    
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
+    if (!inTable.rows[0].exists) {
+      logger.error({ message: `msg=Fab not found` });
+      const error = new Error('DC not found');
+      error.status = 404;
+      throw error;
+    }
+    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [fabName])).rows[0].id;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      lockKey = 2000000000000000 + id;
+      const lockKey = 2000000000000000 + id;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
       const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
       if (!inTable.rows[0].exists) {
