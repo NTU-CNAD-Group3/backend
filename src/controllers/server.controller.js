@@ -35,21 +35,21 @@ export const createServerController = async (req, res) => {
 
 // put
 export const moveServerController = async (req, res) => {
-  const { id, newFabId, newRoomId, newRackId, newService, frontPosition, backPosition } = req.body;
+  const { id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition } = req.body;
   if (
     id == null ||
     newFabId == null ||
     newRoomId == null ||
     newRackId == null ||
-    newService == null ||
+    service == null ||
     frontPosition == null ||
     backPosition == null
   ) {
-    const error = new Error('id, newFabId, newRoomId, newRackId, newService, frontPosition, backPosition are required');
+    const error = new Error('id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition are required');
     error.status = 400;
     throw error;
   }
-  await moveServer(id, newFabId, newRoomId, newRackId, newService, frontPosition, backPosition);
+  await moveServer(id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition);
   res.status(200).json({ message: 'Success' });
 };
 

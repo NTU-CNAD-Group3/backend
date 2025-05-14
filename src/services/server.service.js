@@ -81,14 +81,14 @@ class ServerServices {
     }
   }
 
-  async moveServer(id, newFabId, newRoomId, newRackId, newService, frontPosition, backPosition) {
+  async moveServer(id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       const lockKey = 4000000000000000 + newRackId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
       const serviceCheck = await client.query('SELECT service FROM racks WHERE id = $1', [newRackId]);
-      if (serviceCheck.rows[0].service !== newService) {
+      if (serviceCheck.rows[0].service !== service) {
         const error = new Error('Server with the service can not insert to this rack');
         error.status = 400;
         throw error;

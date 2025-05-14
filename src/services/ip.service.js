@@ -14,7 +14,7 @@ class IpServices {
       poolId = result.rows[i].id;
       lockKey = 5000000000000000 + poolId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
-      poolData = (await client.query(`SELECT cidr FROM ipPools WHERE id = $1`, [poolId])).rows[0];
+      poolData = (await client.query(`SELECT id,cidr FROM ipPools WHERE id = $1`, [poolId])).rows[0];
       ip = await ipUtils.getAvailableIp(poolData.cidr, poolData.usedips);
       if (ip) {
         break;
