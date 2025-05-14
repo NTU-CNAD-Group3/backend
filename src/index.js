@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import promClient from 'prom-client';
 
 import config from '#src/config.js';
 import { databaseConnection } from '#src/models/db.js';
@@ -29,26 +28,6 @@ app.use(
 
 app.use(hpp());
 app.use(helmet());
-
-// Prometheus metrics setup
-const collectDefaultMetrics = promClient.collectDefaultMetrics;
-collectDefaultMetrics();
-
-const httpRequestCounter = new promClient.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code'],
-});
-// metrics endpoint
-app.get('/metrics', async (req, res) => {
-  try {
-    res.set('Content-Type', promClient.register.contentType);
-    const metrics = await promClient.register.metrics();
-    res.end(metrics);
-  } catch (ex) {
-    res.status(500).end(ex);
-  }
-});
 
 // log incoming requests
 app.use((req, res, next) => {
