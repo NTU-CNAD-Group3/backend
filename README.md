@@ -1,11 +1,12 @@
 # Gateway Service
 
+# 還在更改中(5/14)，從service開始改，其他還沒動，也都還沒測，先丟上來給看
+
 ## Description
 
 The Backend service contains the primary logic of the application. It is responsible for handling fab, rack, and server management. 
 
-## 剩下要做的
-把所有API完成 比較完整的監測系統，現在有一個metrics可以測
+
 
 ## Prerequisites
 

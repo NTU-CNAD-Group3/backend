@@ -87,6 +87,7 @@ const createServerTableText = `
   CREATE UNIQUE INDEX IF NOT EXISTS servers_name_index ON servers USING btree (name);
 `;
 
+const extension = `CREATE EXTENSION IF NOT EXISTS pg_trgm;`;
 const dropTableText = `
   DROP TABLE IF EXISTS servers, racks, rooms, fabs, ipPools CASCADE;
 `;
@@ -99,6 +100,7 @@ export const databaseConnection = async () => {
     await pool.query(createRackTableText);
     await pool.query(createIpTableText);
     await pool.query(createServerTableText);
+    await pool.query(extension);
 
     logger.info({
       message: `msg=Database connected`,
@@ -118,6 +120,7 @@ export const databaseRecreation = async () => {
     await pool.query(createRackTableText);
     await pool.query(createIpTableText);
     await pool.query(createServerTableText);
+    await pool.query(extension);
 
     logger.info({
       message: `msg=Database recreated`,

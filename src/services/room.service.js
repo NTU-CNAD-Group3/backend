@@ -14,7 +14,7 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const lockKey = 2001;
+      const lockKey = 2000000000000000+id;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
 
       const hasRack = 0;
@@ -141,18 +141,22 @@ class RoomServices {
   }
 
   async deleteRoom(fabName, roomId) {
-    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
-    if (!inTable.rows[0].exists) {
-      logger.error({ message: `msg=Room not found` });
-      const error = new Error('Room not found');
-      error.status = 404;
-      throw error;
-    }
+    
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      lockKey = 2000000000000000 + id;
+      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
+      if (!inTable.rows[0].exists) {
+        logger.error({ message: `msg=Room not found` });
+        const error = new Error('Room not found');
+        error.status = 404;
+        throw error;
+      }
       await client.query('DELETE FROM rooms WHERE id = $1', [roomId]);
       await client.query('UPDATE fabs SET roomNum = roomNum - 1 WHERE name=$1;', [fabName]);
+      await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
         message: `msg=Room ${roomId} deleted`,
