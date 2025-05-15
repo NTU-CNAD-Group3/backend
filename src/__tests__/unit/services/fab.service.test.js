@@ -1,334 +1,173 @@
 import { jest } from '@jest/globals';
 
 const mockQuery = jest.fn();
-jest.unstable_mockModule('#src/models/db.js', () => ({
-  pool: {
-    query: mockQuery,
-  },
-  databaseClose: jest.fn().mockResolvedValue(undefined),
-}));
-
 const mockLoggerInfo = jest.fn();
 const mockLoggerError = jest.fn();
-jest.unstable_mockModule('#src/utils/logger.js', () => ({
-  default: {
-    info: mockLoggerInfo,
-    error: mockLoggerError,
-  },
+
+await jest.unstable_mockModule('#src/models/db.js', () => ({
+  pool: { query: mockQuery }
 }));
 
-const fabService = (await import('#src/services/fab.service.js')).default;
+await jest.unstable_mockModule('#src/utils/logger.js', () => ({
+  default: {
+    info: mockLoggerInfo,
+    error: mockLoggerError
+  }
+}));
 
-const { pool } = await import('#src/models/db.js');
-const logger = (await import('#src/utils/logger.js')).default;
+const fabServiceModule = await import('#src/services/fab.service.js');
+const fabService = fabServiceModule.default;
 
-describe('Fab Service – Unit Tests', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+// -----------------------------------------------------------------------------
+// getFab
+// -----------------------------------------------------------------------------
+describe('getFab', () => {
+  test('should return nested fab structure if found', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // exists check
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            dc_id: 1, dc_name: 'fabA', createdat: '2024-01-01', updatedat: '2024-01-02',
+            room_id: 2, room_name: 'room1',
+            rack_id: 3, rack_name: 'rack1', service: 'web',
+            server_id: 4, server_name: 'server1'
+          }
+        ]
+      });
+
+    const result = await fabService.getFab('fabA');
+
+    expect(result.name).toBe('fabA');
+    expect(mockQuery).toHaveBeenCalledTimes(2);
+    expect(mockLoggerInfo).toHaveBeenCalledWith({ message: 'msg=Fab get' });
   });
 
-  // // --- getFabDetails ---
-  // describe('getFabDetails', () => {
-  //   it('should execute the correct query and return the result on success', async () => {
-  //     const mockName = 'FabTest';
-  //     const mockDbResult = {
-  //       rows: [{ fabid: 1, fabname: mockName, roomnum: 5, roomid: 10, roomname: 'RoomA' }],
-  //       rowCount: 1,
-  //       // Add other properties pg pool might return if needed
-  //     };
-  //     mockQuery.mockResolvedValue(mockDbResult); // Simulate successful DB query
+  test('should throw 404 if fab not found', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-  //     const result = await fabService.getFabDetails(mockName);
+    await expect(fabService.getFab('notFound')).rejects.toThrow('DC not found');
+    expect(mockLoggerError).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
+  });
+});
 
-  //     expect(pool.query).toHaveBeenCalledTimes(1);
-  //     // Verify the core parts of the query and the parameter
-  //     expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT  f.id AS fabId,'), [mockName]);
-  //     expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('FROM fabs f'), [mockName]);
-  //     expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE f.name = $1'), [mockName]);
-
-  //     // The service method returns the raw result from pool.query
-  //     expect(result).toEqual(mockDbResult);
-  //     expect(logger.info).toHaveBeenCalledTimes(1);
-  //     expect(logger.info).toHaveBeenCalledWith({ message: `msg=All fab's details get` });
-  //     expect(logger.error).not.toHaveBeenCalled();
-  //   });
-
-  //   it('should log an error and return undefined if the query fails', async () => {
-  //     const mockName = 'FabTest';
-  //     const mockError = new Error('DB connection error');
-  //     mockQuery.mockRejectedValue(mockError); // Simulate DB query error
-
-  //     const result = await fabService.getFabDetails(mockName);
-
-  //     expect(pool.query).toHaveBeenCalledTimes(1);
-  //     expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('FROM fabs f'), [mockName]);
-  //     expect(result).toBeUndefined(); // Service catches error and likely returns undefined implicitly
-  //     expect(logger.info).not.toHaveBeenCalled();
-  //     expect(logger.error).toHaveBeenCalledTimes(1);
-  //     // Check if the error message includes the original error
-  //     expect(logger.error).toHaveBeenCalledWith({ message: expect.stringContaining(`msg=getFabDetails error error=${mockError}`) });
-  //   });
-  // });
-
-  // // --- getAllRooms ---
-  // describe('getAllRooms', () => {
-  //   it('should fetch all rooms for a given fab ID successfully', async () => {
-  //     const mockFabId = 1;
-  //     const mockDbResult = {
-  //       rows: [
-  //         { id: 10, name: 'RoomA', fabid: mockFabId, racknum: 5, height: 10 },
-  //         { id: 11, name: 'RoomB', fabid: mockFabId, racknum: 3, height: 8 },
-  //       ],
-  //       rowCount: 2,
-  //     };
-  //     mockQuery.mockResolvedValue(mockDbResult);
-
-  //     const result = await fabService.getAllRooms(mockFabId);
-
-  //     expect(pool.query).toHaveBeenCalledTimes(1);
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM Rooms WHERE fabId = $1', [mockFabId]);
-  //     expect(result).toEqual(mockDbResult.rows); // Service returns rows directly
-  //     expect(logger.info).toHaveBeenCalledTimes(1);
-  //     expect(logger.info).toHaveBeenCalledWith({ message: `msg=AllRooms get` });
-  //     expect(logger.error).not.toHaveBeenCalled();
-  //   });
-
-  //   it('should log an error and return undefined if fetching rooms fails', async () => {
-  //     const mockFabId = 1;
-  //     const mockError = new Error('Failed to get rooms');
-  //     mockQuery.mockRejectedValue(mockError);
-
-  //     const result = await fabService.getAllRooms(mockFabId);
-
-  //     expect(pool.query).toHaveBeenCalledTimes(1);
-  //     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM Rooms WHERE fabId = $1', [mockFabId]);
-  //     expect(result).toBeUndefined();
-  //     expect(logger.info).not.toHaveBeenCalled();
-  //     expect(logger.error).toHaveBeenCalledTimes(1);
-  //     expect(logger.error).toHaveBeenCalledWith({ message: expect.stringContaining(`msg=Getall rooms error error=${mockError}`) });
-  //   });
-  // });
-
-  // --- getAllFabs ---
-  describe('getAllFabs', () => {
-    it('should return structured data of all fabs', async () => {
-      const mockDbRows = [
+// -----------------------------------------------------------------------------
+// getAllFabs
+// -----------------------------------------------------------------------------
+describe('getAllFabs', () => {
+  test('should return all fabs nested', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [
         {
-          dc_id: 1,
-          dc_name: 'FabA',
-          room_id: 10,
-          room_name: 'RoomA',
-          rack_id: 100,
-          rack_name: 'RackA',
-          service: 'Storage',
-          server_id: 1000,
-          server_name: 'ServerA',
-          unit: 1,
-          frontposition: 0,
-          backposition: 1,
-        },
-      ];
-
-      pool.query.mockResolvedValue({ rows: mockDbRows });
-
-      const result = await fabService.getAllFabs();
-
-      expect(pool.query).toHaveBeenCalledTimes(1);
-      expect(logger.info).toHaveBeenCalledWith({ message: 'msg=All fabs get' });
-
-      expect(result).toEqual({
-        dc1: {
-          name: 'FabA',
-          roomNum: 1,
-          rooms: {
-            room10: {
-              name: 'RoomA',
-              rackNum: 1,
-              racks: {
-                rack100: {
-                  name: 'RackA',
-                  service: 'Storage',
-                  serverNum: 1,
-                  servers: {
-                    server1000: {
-                      name: 'ServerA',
-                      unit: 1,
-                      position_front: 0,
-                      position_back: 1,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
+          dc_id: 1, dc_name: 'fabA',
+          room_id: 2, room_name: 'room1',
+          rack_id: 3, rack_name: 'rack1', service: 'db',
+          server_id: 4, server_name: 's1', unit: 2, frontposition: 10, backposition: 20
+        }
+      ]
     });
+
+    const result = await fabService.getAllFabs();
+
+    expect(result.dc1.name).toBe('fabA');
+    expect(mockLoggerInfo).toHaveBeenCalledWith({ message: 'msg=All fabs get' });
   });
 
-  // --- getFab ---
-  describe('getFab', () => {
-    const mockName = 'FabX';
+  test('should return empty object if no rows', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
 
-    it('should return structured fab data if fab exists', async () => {
-      // 模擬 SELECT EXISTS 回傳 true
-      pool.query
-        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // inTable
-        .mockResolvedValueOnce({
-          // actual data
-          rows: [
-            {
-              dc_id: 1,
-              dc_name: 'FabX',
-              room_id: 10,
-              room_name: 'RoomX',
-              rack_id: 100,
-              rack_name: 'RackX',
-              service: 'Network',
-              server_id: 1000,
-              server_name: 'ServerX',
-            },
-          ],
-        });
+    const result = await fabService.getAllFabs();
+    expect(result).toEqual({});
+  });
+});
 
-      const result = await fabService.getFab(mockName);
+// -----------------------------------------------------------------------------
+// createFab
+// -----------------------------------------------------------------------------
+describe('createFab', () => {
+  test('should insert new fab and return id', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: false }] }) // uniqueness check
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] });        // insert
 
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
-
-      expect(logger.info).toHaveBeenCalledWith({ message: 'msg=Fab get' });
-
-      expect(result).toEqual({
-        id: 1,
-        name: 'FabX',
-        roomNum: 1,
-        rooms: {
-          room10: {
-            id: 10,
-            name: 'RoomX',
-            rackNum: 1,
-            racks: {
-              rack100: {
-                id: 100,
-                name: 'RackX',
-                service: 'Network',
-                serverNum: 1,
-                servers: {
-                  server1000: {
-                    id: 1000,
-                    name: 'ServerX',
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-    });
-
-    it('should throw 404 error if fab does not exist', async () => {
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] });
-
-      await expect(fabService.getFab(mockName)).rejects.toThrow('DC not found');
-      expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
-    });
+    const result = await fabService.createFab('fabX');
+    expect(result).toEqual({ id: 1 });
+    expect(mockQuery).toHaveBeenCalledTimes(2);
+    expect(mockLoggerInfo).toHaveBeenCalledWith({ message: 'msg=Fab created name=fabX' });
   });
 
-  // --- createFab ---
-  describe('createFab', () => {
-    const mockName = 'NewFab';
-    const mockRoomNum = 0;
+  test('should throw error if name already exists', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] });
 
-    it('should create a fab successfully and return the new fab', async () => {
-      // Mock for SELECT EXISTS
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Name is unique
+    await expect(fabService.createFab('fabX')).rejects.toThrow('The name must be unique');
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
 
-      // Mock for INSERT query
-      pool.query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Return new fab's ID
+// -----------------------------------------------------------------------------
+// updateFab
+// -----------------------------------------------------------------------------
+describe('updateFab', () => {
+  test('should update fab name if valid', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })  // id exists
+      .mockResolvedValueOnce({ rows: [{ exists: false }] }); // name not taken
 
-      const result = await fabService.createFab(mockName);
-
-      expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
-      expect(pool.query).toHaveBeenCalledWith('INSERT INTO fabs (name, roomNum) VALUES ($1, $2) RETURNING id', [mockName, mockRoomNum]);
-
-      expect(result).toEqual({ id: 1 });
-      expect(logger.info).toHaveBeenCalledWith({ message: `msg=Fab created name=${mockName}` });
-      expect(logger.error).not.toHaveBeenCalled();
-    });
-
-    it('should throw an error if the fab name already exists', async () => {
-      // Mock for SELECT EXISTS
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Name already exists
-
-      await expect(fabService.createFab(mockName, mockRoomNum)).rejects.toThrow('The name must be unique');
-      expect(logger.error).toHaveBeenCalledWith({ message: 'msg=The name must be unique' });
-    });
+    await fabService.updateFab(1, 'newFab');
+    expect(mockQuery).toHaveBeenCalledTimes(3);
+    expect(mockLoggerInfo).toHaveBeenCalledWith({ message: 'msg=Fab updated name=newFab' });
   });
 
-  // --- updateFab ---
-  describe('updateFab', () => {
-    const mockId = 1;
-    const mockName = 'UpdatedFab';
+  test('should throw error if fab not found by id', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-    it('should update a fab successfully', async () => {
-      // Mock for SELECT EXISTS
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Name is unique for update
-
-      await fabService.updateFab(mockId, mockName);
-
-      expect(pool.query).toHaveBeenCalledTimes(3);
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [mockId]);
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
-      expect(pool.query).toHaveBeenCalledWith('UPDATE fabs SET name = $1 WHERE id = $2', [mockName, mockId]);
-
-      expect(logger.info).toHaveBeenCalledWith({
-        message: `msg=Fab updated name=${mockName}`,
-      });
-      expect(logger.error).not.toHaveBeenCalled();
-    });
-
-    it('should throw an error if fab does not exist', async () => {
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Fab does not exist
-
-      await expect(fabService.updateFab(mockId, mockName)).rejects.toThrow('DC not found');
-      expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
-    });
-
-    it('should throw an error if the updated fab name already exists', async () => {
-      // Mock for SELECT EXISTS for fab
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
-      // Mock for SELECT EXISTS for name
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Name already exists
-
-      await expect(fabService.updateFab(mockId, mockName)).rejects.toThrow('The name must be unique');
-      expect(logger.error).toHaveBeenCalledWith({ message: 'msg=The name must be unique' });
-    });
+    await expect(fabService.updateFab(99, 'x')).rejects.toThrow('DC not found');
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  // --- deleteFab ---
-  describe('deleteFab', () => {
-    const mockName = 'FabToDelete';
+  test('should throw error if name already exists', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] });
 
-    it('should delete a fab successfully', async () => {
-      // Mock for SELECT EXISTS
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: true }] }); // Fab exists
+    await expect(fabService.updateFab(1, 'duplicate')).rejects.toThrow('The name must be unique');
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
 
-      await fabService.deleteFab(mockName);
+// -----------------------------------------------------------------------------
+// deleteFab
+// -----------------------------------------------------------------------------
+describe('deleteFab', () => {
+  test('should delete fab if no rooms exist', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })  // fab exists
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] })         // get id
+      .mockResolvedValueOnce({ rows: [{ exists: false }] }); // is empty
 
-      expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(pool.query).toHaveBeenCalledWith('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [mockName]);
-      expect(pool.query).toHaveBeenCalledWith('DELETE FROM fabs WHERE name = $1', [mockName]);
+    await fabService.deleteFab('fabX');
+    expect(mockQuery).toHaveBeenCalledTimes(4); // +1 for DELETE query
+    expect(mockLoggerInfo).toHaveBeenCalled();
+  });
 
-      expect(logger.info).toHaveBeenCalledWith({ message: `msg=Fab deleted name=${mockName}` });
-      expect(logger.error).not.toHaveBeenCalled();
-    });
+  test('should throw error if fab not found', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
 
-    it('should throw an error if fab does not exist', async () => {
-      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // Fab does not exist
+    await expect(fabService.deleteFab('notFound')).rejects.toThrow('The name does not exist');
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
 
-      await expect(fabService.deleteFab(mockName)).rejects.toThrow('The name does not exist');
-      expect(logger.error).toHaveBeenCalledWith({ message: 'msg=Fab not found' });
-    });
+  test('should throw error if fab is not empty', async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] });
+
+    await expect(fabService.deleteFab('fabWithRooms')).rejects.toThrow('Fab is not Empty');
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 });

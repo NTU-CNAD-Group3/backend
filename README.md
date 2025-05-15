@@ -1,10 +1,6 @@
 # Gateway Service
 
-# FAB 測試完畢
-# room 測試完畢
-# rack 測試完畢
-# ip 測試完畢
-# server 測試中
+# 大部分測試完成可以再檢查
 
 ## Description
 

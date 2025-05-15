@@ -9,7 +9,7 @@ class ServerServices {
       await client.query('BEGIN');
       const lockKey = 4000000000000000 + rackId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
-      const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [rackId]);
+      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [rackId]);
       if (!inTable.rows[0].exists) {
         logger.error({ message: `msg=Rack not found` });
         const error = new Error('Rack not found');

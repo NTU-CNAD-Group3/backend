@@ -15,7 +15,7 @@ class RoomServices {
     try {
       await client.query('BEGIN');
       const lockKey = 2000000000000000 + id;
-      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+      await client.query('SELECT pg_advisory_lock($1)', [lockKey]);
 
       const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
@@ -162,8 +162,8 @@ class RoomServices {
         throw error;
       }
 
-      const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE roomId = $1)', [roomId]);
-      if (!isEmpty.rows[0].exists) {
+      const isEmpty = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE roomId = $1)', [roomId]);
+      if (isEmpty.rows[0].exists) {
         logger.error({ message: 'msg=Room is not Empty' });
         const error = new Error('Room is not Empty');
         error.status = 400;

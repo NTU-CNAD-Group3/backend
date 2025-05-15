@@ -223,9 +223,9 @@ class FabServices {
       error.status = 404;
       throw error;
     }
-    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [name])).rows.id;
+    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [name])).rows[0].id;
     const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE fabId = $1)', [id]);
-    if (!isEmpty.rows[0].exists) {
+    if (isEmpty.rows[0].exists) {
       logger.error({ message: 'msg=Fab is not Empty' });
       const error = new Error('Fab is not Empty');
       error.status = 400;

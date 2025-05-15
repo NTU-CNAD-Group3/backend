@@ -1,36 +1,44 @@
 import { jest } from '@jest/globals';
 
+// Mock 所有 server.service 函數
 const mockCreateServer = jest.fn();
 const mockDeleteServer = jest.fn();
-const mockUpdateServer = jest.fn();
+const mockMoveServer = jest.fn();
 const mockGetServer = jest.fn();
 const mockGetAllServers = jest.fn();
-const mockGetServerByName = jest.fn();
-const mockGetServerByIp = jest.fn();
-const mockGetAllServerByService = jest.fn();
+const mockRepair = jest.fn();
+const mockBroken = jest.fn();
+const mockGetAllServerBroken = jest.fn();
+const mockUpdateServerName = jest.fn();
+const mockGetServerByType = jest.fn();
 
 await jest.unstable_mockModule('#src/services/server.service.js', () => ({
   default: {
     createServer: mockCreateServer,
     deleteServer: mockDeleteServer,
-    updateServer: mockUpdateServer,
+    moveServer: mockMoveServer,
     getServer: mockGetServer,
     getAllServers: mockGetAllServers,
-    getServerByName: mockGetServerByName,
-    getServerByIp: mockGetServerByIp,
-    getAllServerByService: mockGetAllServerByService,
+    repair: mockRepair,
+    broken: mockBroken,
+    getAllServerBroken: mockGetAllServerBroken,
+    updateServerName: mockUpdateServerName,
+    getServerByType: mockGetServerByType,
   },
 }));
 
+// 匯入 controller
 const {
   createServerController,
   deleteServerController,
-  updateServerController,
+  moveServerController,
   getServerController,
   getAllServersController,
-  getServerByNameController,
-  getServerByIpController,
-  getAllServerByServiceController,
+  repairController,
+  brokenController,
+  getAllServerBrokenController,
+  updateServerNameController,
+  getServerByTypeController,
 } = await import('#src/controllers/server.controller.js');
 
 let req, res;
@@ -43,237 +51,211 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ---------------------------------------------------------------------------
-// createServerController -----------------------------------------------------
-// ---------------------------------------------------------------------------
+//
+// createServerController
+//
 describe('createServerController', () => {
-  const validBody = {
-    name: 'srv‑A',
+  const valid = {
+    name: 'srv-1',
     service: 'db',
-    unit: 1,
+    unit: 2,
     fabId: 1,
     roomId: 1,
     rackId: 1,
-    frontPosition: 1,
-    backPosition: 2,
+    frontPosition: 5,
+    backPosition: 6,
   };
 
-  test('should create server and return 201', async () => {
-    const created = { ...validBody, id: 55 };
-    mockCreateServer.mockResolvedValue(created);
-
-    req.body = { ...validBody };
+  test('should create and return 201', async () => {
+    mockCreateServer.mockResolvedValue({ id: 123 });
+    req.body = { ...valid };
     await createServerController(req, res);
-
-    expect(mockCreateServer).toHaveBeenCalledWith(
-      validBody.name,
-      validBody.service,
-      validBody.unit,
-      validBody.fabId,
-      validBody.roomId,
-      validBody.rackId,
-      validBody.frontPosition,
-      validBody.backPosition,
-    );
+    expect(mockCreateServer).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: created, message: 'Created' });
+    expect(res.json).toHaveBeenCalledWith({ data: { id: 123 }, message: 'Created' });
   });
 
-  test('should respond 400 if required fields missing', async () => {
-    req.body = { ...validBody, name: null };
+  test('should fail on missing fields', async () => {
+    req.body = { ...valid, name: null };
+    await expect(createServerController(req, res)).rejects.toThrow(/are required/);
+  });
 
-    await expect(createServerController(req, res)).rejects.toThrow(
-      'Name, service, unit, fabId, roomId, rackId, frontPosition, backPosition are required',
-    );
-    expect(mockCreateServer).not.toHaveBeenCalled();
+  test('should fail on invalid unit range', async () => {
+    req.body = { ...valid, frontPosition: 1, backPosition: 5, unit: 3 };
+    await expect(createServerController(req, res)).rejects.toThrow(/does not match the position size/);
   });
 });
 
-// ---------------------------------------------------------------------------
-// deleteServerController -----------------------------------------------------
-// ---------------------------------------------------------------------------
+//
+// moveServerController
+//
+describe('moveServerController', () => {
+  const body = {
+    id: 1,
+    newFabId: 2,
+    newRoomId: 3,
+    newRackId: 4,
+    service: 'web',
+    unit: 2,
+    frontPosition: 10,
+    backPosition: 11,
+  };
+
+  test('should move and return 200', async () => {
+    req.body = { ...body };
+    await moveServerController(req, res);
+    expect(mockMoveServer).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Success' });
+  });
+
+  test('should fail on missing fields', async () => {
+    req.body = { ...body, id: null };
+    await expect(moveServerController(req, res)).rejects.toThrow(/are required/);
+  });
+
+  test('should fail on unit mismatch', async () => {
+    req.body = { ...body, frontPosition: 1, backPosition: 5, unit: 3 };
+    await expect(moveServerController(req, res)).rejects.toThrow(/does not match the position size/);
+  });
+});
+
+//
+// updateServerNameController
+//
+describe('updateServerNameController', () => {
+  test('should update and return 200', async () => {
+    req.body = { id: 1, newName: 'srv-new' };
+    await updateServerNameController(req, res);
+    expect(mockUpdateServerName).toHaveBeenCalledWith(1, 'srv-new');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Updated' });
+  });
+
+  test('should fail if id or newName missing', async () => {
+    req.body = { id: 1 };
+    await expect(updateServerNameController(req, res)).rejects.toThrow(/required/);
+  });
+});
+
+//
+// repairController
+//
+describe('repairController', () => {
+  test('should call repair and return 200', async () => {
+    req.body = { id: 2 };
+    await repairController(req, res);
+    expect(mockRepair).toHaveBeenCalledWith(2);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Updated' });
+  });
+
+  test('should fail if id missing', async () => {
+    req.body = {};
+    await expect(repairController(req, res)).rejects.toThrow(/required/);
+  });
+});
+
+//
+// brokenController
+//
+describe('brokenController', () => {
+  test('should call broken and return 200', async () => {
+    req.body = { id: 3 };
+    await brokenController(req, res);
+    expect(mockBroken).toHaveBeenCalledWith(3);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Updated' });
+  });
+
+  test('should fail if id missing', async () => {
+    req.body = {};
+    await expect(brokenController(req, res)).rejects.toThrow(/required/);
+  });
+});
+
+//
+// getAllServerBrokenController
+//
+describe('getAllServerBrokenController', () => {
+  test('should return broken servers', async () => {
+    const data = [{ id: 1 }];
+    mockGetAllServerBroken.mockResolvedValue(data);
+    await getAllServerBrokenController(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ data, message: 'OK' });
+  });
+});
+
+//
+// getServerController
+//
+describe('getServerController', () => {
+  test('should return one server', async () => {
+    mockGetServer.mockResolvedValue({ id: 99 });
+    req.query = { id: 99 };
+    await getServerController(req, res);
+    expect(mockGetServer).toHaveBeenCalledWith(99);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ data: { id: 99 }, message: 'OK' });
+  });
+
+  test('should fail if id missing', async () => {
+    req.query = {};
+    await expect(getServerController(req, res)).rejects.toThrow(/required/);
+  });
+});
+
+//
+// getAllServersController
+//
+describe('getAllServersController', () => {
+  test('should return all servers', async () => {
+    const servers = [{ id: 1 }, { id: 2 }];
+    mockGetAllServers.mockResolvedValue(servers);
+    await getAllServersController(req, res);
+    expect(mockGetAllServers).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ data: servers, message: 'OK' });
+  });
+});
+
+//
+// getServerByTypeController
+//
+describe('getServerByTypeController', () => {
+  test('should return server by type', async () => {
+    const result = [{ id: 1 }];
+    req.query = { keyword: 'web', type: 'service', page: 1, size: 10 };
+    mockGetServerByType.mockResolvedValue(result);
+    await getServerByTypeController(req, res);
+    expect(mockGetServerByType).toHaveBeenCalledWith('web', 'service', 1, 10);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ data: result, message: 'OK' });
+  });
+
+  test('should fail if required fields missing', async () => {
+    req.query = { keyword: 'x', type: null };
+    await expect(getServerByTypeController(req, res)).rejects.toThrow(/required/);
+  });
+});
+
+//
+// deleteServerController
+//
 describe('deleteServerController', () => {
-  test('should delete server and return 201', async () => {
-    const deleted = { id: 9 };
+  test('should delete server and return 200', async () => {
+    const deleted = { id: 1 };
+    req.body = { rackId: 2, id: 1 };
     mockDeleteServer.mockResolvedValue(deleted);
-
-    req.body = { id: 9 };
     await deleteServerController(req, res);
-
-    expect(mockDeleteServer).toHaveBeenCalledWith(9);
-    expect(res.status).toHaveBeenCalledWith(201);
+    expect(mockDeleteServer).toHaveBeenCalledWith(2, 1);
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ data: deleted, message: 'Deleted' });
   });
 
-  test('should respond 400 if id missing', async () => {
-    req.body = { id: null };
-
-    await expect(deleteServerController(req, res)).rejects.toThrow('Server ID are required');
-    expect(mockDeleteServer).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// updateServerController -----------------------------------------------------
-// ---------------------------------------------------------------------------
-describe('updateServerController', () => {
-  const body = {
-    id: 1,
-    name: 'srv‑B',
-    service: 'web',
-    ip: '10.0.0.2',
-    unit: 1,
-    fabId: 1,
-    roomId: 1,
-    rackId: 1,
-    ipPoolId: 1,
-    frontPosition: 2,
-    backPosition: 3,
-    healthy: true,
-  };
-
-  test('should update server and return 201', async () => {
-    mockUpdateServer.mockResolvedValue({ ...body });
-
-    req.body = { ...body };
-    await updateServerController(req, res);
-
-    expect(mockUpdateServer).toHaveBeenCalledWith(
-      body.id,
-      body.name,
-      body.service,
-      body.ip,
-      body.unit,
-      body.fabId,
-      body.roomId,
-      body.rackId,
-      body.ipPoolId,
-      body.frontPosition,
-      body.backPosition,
-      body.healthy,
-    );
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: body, message: 'Updated' });
-  });
-
-  test('should respond 400 if required field missing', async () => {
-    req.body = { ...body, name: null };
-
-    await expect(updateServerController(req, res)).rejects.toThrow(
-      'id, name, service, ip, unit, fabId, roomId, rackId, ipPoolId, frontPosition, backPosition, healthy are required',
-    );
-    expect(mockUpdateServer).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getServerController --------------------------------------------------------
-// ---------------------------------------------------------------------------
-describe('getServerController', () => {
-  test('should get server by id', async () => {
-    const server = { id: 3 };
-    mockGetServer.mockResolvedValue(server);
-
-    req.params = { id: 3 };
-    await getServerController(req, res);
-
-    expect(mockGetServer).toHaveBeenCalledWith(3);
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: server, message: 'OK' });
-  });
-
-  test('should respond 400 if id missing', async () => {
-    req.params = { id: null };
-
-    await expect(getServerController(req, res)).rejects.toThrow('Server ID are required');
-    expect(mockGetServer).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getAllServersController ----------------------------------------------------
-// ---------------------------------------------------------------------------
-describe('getAllServersController', () => {
-  test('should return all servers', async () => {
-    const all = [{ id: 1 }, { id: 2 }];
-    mockGetAllServers.mockResolvedValue(all);
-
-    await getAllServersController(req, res);
-
-    expect(mockGetAllServers).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: all, message: 'OK' });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getServerByNameController --------------------------------------------------
-// ---------------------------------------------------------------------------
-describe('getServerByNameController', () => {
-  test('should get server by name', async () => {
-    const srv = { id: 4 };
-    mockGetServerByName.mockResolvedValue(srv);
-
-    req.body = { name: 'srv‑C' };
-    await getServerByNameController(req, res);
-
-    expect(mockGetServerByName).toHaveBeenCalledWith('srv‑C');
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: srv, message: 'OK' });
-  });
-
-  test('should respond 400 if name missing', async () => {
-    req.body = {};
-
-    await expect(getServerByNameController(req, res)).rejects.toThrow('Server name are required');
-    expect(mockGetServerByName).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getServerByIpController ----------------------------------------------------
-// ---------------------------------------------------------------------------
-describe('getServerByIpController', () => {
-  test('should get server by ip', async () => {
-    const srv = { id: 5 };
-    mockGetServerByIp.mockResolvedValue(srv);
-
-    req.body = { ip: '10.0.0.5' };
-    await getServerByIpController(req, res);
-
-    expect(mockGetServerByIp).toHaveBeenCalledWith('10.0.0.5');
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: srv, message: 'OK' });
-  });
-
-  test('should respond 400 if ip missing', async () => {
-    req.body = {};
-
-    await expect(getServerByIpController(req, res)).rejects.toThrow('Server IP are required');
-    expect(mockGetServerByIp).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// getAllServerByServiceController -------------------------------------------
-// ---------------------------------------------------------------------------
-describe('getAllServerByServiceController', () => {
-  test('should list servers by service', async () => {
-    const list = [{ id: 6 }];
-    mockGetAllServerByService.mockResolvedValue(list);
-
-    req.body = { service: 'db' };
-    await getAllServerByServiceController(req, res);
-
-    expect(mockGetAllServerByService).toHaveBeenCalledWith('db');
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({ data: list, message: 'OK' });
-  });
-
-  test('should respond 400 if service missing', async () => {
-    req.body = {};
-
-    await expect(getAllServerByServiceController(req, res)).rejects.toThrow('Server service are required');
-    expect(mockGetAllServerByService).not.toHaveBeenCalled();
+  test('should fail if rackId or id missing', async () => {
+    req.body = { rackId: null, id: 1 };
+    await expect(deleteServerController(req, res)).rejects.toThrow(/required/);
   });
 });

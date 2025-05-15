@@ -1,220 +1,272 @@
 import { jest } from '@jest/globals';
 
-// Mock dependencies
-const mockQuery = jest.fn();
-const mockConnect = jest.fn();
-jest.unstable_mockModule('#src/models/db.js', () => ({
+await jest.unstable_mockModule('#src/models/db.js', () => ({
   pool: {
-    query: mockQuery,
-    connect: mockConnect,
+    query: jest.fn(),
+    connect: jest.fn(),
   },
-  databaseClose: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockLoggerInfo = jest.fn();
-const mockLoggerError = jest.fn();
-jest.unstable_mockModule('#src/utils/logger.js', () => ({
+await jest.unstable_mockModule('#src/utils/logger.js', () => ({
   default: {
-    info: mockLoggerInfo,
-    error: mockLoggerError,
+    info: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
-// Import the service after mocks
-const roomService = (await import('#src/services/room.service.js')).default;
+const { default: roomService } = await import('#src/services/room.service.js');
+const { pool } = await import('#src/models/db.js');
+const logger = (await import('#src/utils/logger.js')).default;
 
 describe('RoomServices', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('createRooms', () => {
-    test('throws 404 if fab not found', async () => {
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
-
-      await expect(roomService.createRooms('fab1', 2, [])).rejects.toThrow('DC not found');
-
-      expect(mockLoggerError).toHaveBeenCalledWith({
-        message: expect.stringContaining('Fab not found'),
-      });
-    });
-
-    test('creates rooms successfully', async () => {
+    test('should create rooms successfully', async () => {
       const mockClient = {
-        query: jest.fn(),
+        query: jest.fn()
+          .mockResolvedValueOnce() // BEGIN
+          .mockResolvedValueOnce() // advisory lock
+          .mockResolvedValue() // insert rooms
+          .mockResolvedValue() // update fabs
+          .mockResolvedValueOnce() // unlock
+          .mockResolvedValueOnce(), // COMMIT
         release: jest.fn(),
       };
 
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // 檢查 fabs 存在
+      pool.query
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // check fabs exists
+        .mockResolvedValueOnce({ rows: [{ id: 123 }] }); // get fab id
 
-      mockConnect.mockResolvedValue(mockClient);
-      mockClient.query.mockResolvedValue();
+      pool.connect.mockResolvedValue(mockClient);
 
-      const roomArray = [{ name: 'Room A', rackNum: 2, height: 42 }];
-      await roomService.createRooms('fab1', 1, roomArray);
+      const rooms = [
+        { name: 'Room 1', rackNum: 10, height: 42 },
+        { name: 'Room 2', rackNum: 5, height: 30 },
+      ];
 
+      await expect(roomService.createRooms('Fab1', 2, rooms)).resolves.toBeUndefined();
+
+      expect(pool.query).toHaveBeenCalledTimes(2); // check fab and get id
+      expect(pool.connect).toHaveBeenCalledTimes(1);
       expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO rooms'), ['Room A', 0, 1, 2, 42]);
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('UPDATE fabs'), [1, 'fab1']);
+      expect(mockClient.query).toHaveBeenCalledWith('SELECT pg_advisory_lock($1)', [expect.any(Number)]);
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)',
+        ['Room 1', 0, 123, 10, 42]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)',
+        ['Room 2', 0, 123, 5, 30]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE fabs SET roomNum = roomNum + $1,updatedAt = NOW() WHERE name=$2;',
+        [2, 'Fab1']
+      );
+      expect(mockClient.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [expect.any(Number)]);
       expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
-
-      expect(mockLoggerInfo).toHaveBeenCalledWith({
-        message: expect.stringContaining('1 rooms created'),
-      });
+      expect(mockClient.release).toHaveBeenCalled();
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=2 rooms created' }));
     });
 
-    test('rolls back on error', async () => {
+    test('should throw error when fab not found', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // fab not exists
+
+      await expect(roomService.createRooms('InvalidFab', 1, [])).rejects.toThrow('DC not found');
+
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Fab not found' }));
+    });
+
+    test('should rollback and throw error if insert rooms fail', async () => {
       const mockClient = {
-        query: jest.fn(),
+        query: jest.fn()
+          .mockResolvedValueOnce() // BEGIN
+          .mockResolvedValueOnce() // advisory lock
+          .mockRejectedValueOnce(new Error('Insert failed')), // insert rooms fail
         release: jest.fn(),
       };
 
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      pool.query
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+        .mockResolvedValueOnce({ rows: [{ id: 123 }] }); // fab id
 
-      mockConnect.mockResolvedValue(mockClient);
-      mockClient.query.mockResolvedValueOnce().mockRejectedValue(new Error('Insert error'));
+      pool.connect.mockResolvedValue(mockClient);
 
-      await expect(roomService.createRooms('fab1', 1, [{ name: 'Room A', rackNum: 2, height: 42 }])).rejects.toThrow('Insert error');
+      const rooms = [{ name: 'Room 1', rackNum: 10, height: 42 }];
+
+      await expect(roomService.createRooms('Fab1', 1, rooms)).rejects.toThrow('Insert failed');
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-      //   expect(mockLoggerError).toHaveBeenCalledWith({
-      //     message: expect.stringContaining('1 rooms create error'),
-      //   });
+      expect(mockClient.release).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=1 rooms create error' }));
     });
   });
 
   describe('getRoom', () => {
-    test('throws 404 if fab not found', async () => {
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
-
-      await expect(roomService.getRoom('fab1', 1)).rejects.toThrow('DC not found');
-
-      expect(mockLoggerError).toHaveBeenCalledWith({
-        message: expect.stringContaining('Fab not found'),
-      });
-    });
-
-    test('throws 404 if room not found', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-        .mockResolvedValueOnce({ rows: [{ exists: false }] });
-
-      await expect(roomService.getRoom('fab1', 1)).rejects.toThrow('Room not found');
-
-      expect(mockLoggerError).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room not found'),
-      });
-    });
-
-    test('returns room data', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-        .mockResolvedValueOnce({ rows: [{ exists: true }] })
+    test('should return room data successfully', async () => {
+      pool.query
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+        .mockResolvedValueOnce({ rows: [{ id: 123 }] }) // fab id
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
         .mockResolvedValueOnce({
           rows: [
             {
               room_id: 1,
-              room_name: 'Room A',
-              roomnum: 5,
-              hasrack: true,
-              createdat: '2024-01-01',
-              updatedat: '2024-01-02',
-              rack_id: 10,
-              rack_name: 'Rack X',
-              service: 'Service X',
-              server_id: 100,
-              server_name: 'Server Alpha',
+              room_name: 'Room 1',
+              racknum: 10,
+              hasrack: 2,
+              createdat: new Date(),
+              updatedat: new Date(),
+              rack_id: 100,
+              rack_name: 'Rack 1',
+              service: 'Service 1',
+              server_id: 200,
+              server_name: 'Server 1',
             },
           ],
-        }); // final data
+        }); // room data
 
-      const result = await roomService.getRoom('fab1', 1);
-      expect(result.name).toBe('Room A');
-      expect(result.racks.rack10).toBeDefined();
-      expect(result.racks.rack10.servers.server100).toEqual({ id: 100, name: 'Server Alpha' });
+      const result = await roomService.getRoom('Fab1', 1);
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room 1 get'),
-      });
+      expect(result.id).toBe(1);
+      expect(result.name).toBe('Room 1');
+      expect(result.rackNum).toBe(10);
+      expect(result.hasRack).toBe(2);
+      expect(result.racks.rack100.servers.server200.name).toBe('Server 1');
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room 1 get' }));
+    });
+
+    test('should throw error when fab not found', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // fab not found
+
+      await expect(roomService.getRoom('InvalidFab', 1)).rejects.toThrow('DC not found');
+
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Fab not found' }));
+    });
+
+    test('should throw error when room not found', async () => {
+      pool.query
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+        .mockResolvedValueOnce({ rows: [{ id: 123 }] }) // fab id
+        .mockResolvedValueOnce({ rows: [{ exists: false }] }); // room not found
+
+      await expect(roomService.getRoom('Fab1', 999)).rejects.toThrow('Room not found');
+
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room not found' }));
     });
   });
+});
+describe('updateRoom', () => {
+  test('should update room successfully', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
+      .mockResolvedValueOnce(); // update success
 
-  describe('updateRoom', () => {
-    test('throws 404 if room not found', async () => {
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
+    await expect(roomService.updateRoom(1, 'New Room Name', 5)).resolves.toBeUndefined();
 
-      await expect(roomService.updateRoom(1, 'Room X', 7)).rejects.toThrow('Room not found');
-
-      expect(mockLoggerError).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room not found'),
-      });
-    });
-
-    test('updates room successfully', async () => {
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce(); // update query
-
-      await roomService.updateRoom(1, 'Room X', 7);
-
-      expect(mockQuery).toHaveBeenCalledWith('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [7, 'Room X', 1]);
-
-      expect(mockLoggerInfo).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room 1 updated'),
-      });
-    });
+    expect(pool.query).toHaveBeenNthCalledWith(1, 'SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [1]);
+    expect(pool.query).toHaveBeenNthCalledWith(2, 'UPDATE rooms SET rackNum = $1, name = $2,updatedAt = NOW() WHERE id = $3', [5, 'New Room Name', 1]);
+    expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room 1 updated' }));
   });
 
-  describe('deleteRoom', () => {
-    test('throws 404 if room not found', async () => {
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] });
+  test('should throw error if room not found', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // room not exists
 
-      await expect(roomService.deleteRoom('fab1', 1)).rejects.toThrow('Room not found');
+    await expect(roomService.updateRoom(99, 'Name', 3)).rejects.toThrow('Room not found');
 
-      expect(mockLoggerError).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room not found'),
-      });
-    });
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room not found' }));
+  });
+});
 
-    test('deletes room successfully', async () => {
-      const mockClient = {
-        query: jest.fn(),
-        release: jest.fn(),
-      };
+describe('deleteRoom', () => {
+  test('should delete room successfully', async () => {
+    const mockClient = {
+      query: jest.fn()
+        .mockResolvedValueOnce() // BEGIN
+        .mockResolvedValueOnce() // advisory lock
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
+        .mockResolvedValueOnce({ rows: [{ exists: false }] }) // no racks exist (room empty)
+        .mockResolvedValueOnce() // delete room
+        .mockResolvedValueOnce() // update fabs roomNum
+        .mockResolvedValueOnce() // advisory unlock
+        .mockResolvedValueOnce(), // COMMIT
+      release: jest.fn(),
+    };
 
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] });
-      mockConnect.mockResolvedValue(mockClient);
-      mockClient.query.mockResolvedValue();
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+      .mockResolvedValueOnce({ rows: [{ id: 123 }] }); // fab id
 
-      await roomService.deleteRoom('fab1', 1);
+    pool.connect.mockResolvedValue(mockClient);
 
-      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(mockClient.query).toHaveBeenCalledWith('DELETE FROM rooms WHERE id = $1', [1]);
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining('UPDATE fabs'), ['fab1']);
-      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+    await expect(roomService.deleteRoom('Fab1', 1)).resolves.toBeUndefined();
 
-      expect(mockLoggerInfo).toHaveBeenCalledWith({
-        message: expect.stringContaining('Room 1 deleted'),
-      });
-    });
+    expect(pool.query).toHaveBeenCalledTimes(2); // fab check & id get
+    expect(pool.connect).toHaveBeenCalledTimes(1);
 
-    test('rolls back on error', async () => {
-      const mockClient = {
-        query: jest.fn(),
-        release: jest.fn(),
-      };
+    expect(mockClient.query).toHaveBeenNthCalledWith(1, 'BEGIN');
+    expect(mockClient.query).toHaveBeenNthCalledWith(2, 'SELECT pg_advisory_lock($1)', [expect.any(Number)]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(3, 'SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [1]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(4, 'SELECT EXISTS(SELECT 1 FROM racks WHERE roomId = $1)', [1]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(5, 'DELETE FROM rooms WHERE id = $1', [1]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(6, 'UPDATE fabs SET roomNum = roomNum - 1,updatedAt = NOW() WHERE name=$1;', ['Fab1']);
+    expect(mockClient.query).toHaveBeenNthCalledWith(7, 'SELECT pg_advisory_unlock($1)', [expect.any(Number)]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(8, 'COMMIT');
+    expect(mockClient.release).toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room 1 deleted' }));
+  });
 
-      mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] });
-      mockConnect.mockResolvedValue(mockClient);
+  test('should throw error if fab not found', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [{ exists: false }] }); // fab not exist
 
-      mockClient.query.mockResolvedValueOnce().mockRejectedValue(new Error('Delete error'));
+    await expect(roomService.deleteRoom('InvalidFab', 1)).rejects.toThrow('DC not found');
 
-      await expect(roomService.deleteRoom('fab1', 1)).rejects.toThrow('Delete error');
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Fab not found' }));
+  });
 
-      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-      //   expect(mockLoggerError).toHaveBeenCalledWith({
-      //     message: expect.stringContaining('Room 1 deleted error'),
-      //   });
-    });
+  test('should throw error if room not found', async () => {
+    const mockClient = {
+      query: jest.fn()
+        .mockResolvedValueOnce() // BEGIN
+        .mockResolvedValueOnce() // advisory lock
+        .mockResolvedValueOnce({ rows: [{ exists: false }] }), // room not exists
+      release: jest.fn(),
+    };
+
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+      .mockResolvedValueOnce({ rows: [{ id: 123 }] }); // fab id
+
+    pool.connect.mockResolvedValue(mockClient);
+
+    await expect(roomService.deleteRoom('Fab1', 999)).rejects.toThrow('Room not found');
+
+    expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room not found' }));
+  });
+
+  test('should throw error if room is not empty', async () => {
+    const mockClient = {
+      query: jest.fn()
+        .mockResolvedValueOnce() // BEGIN
+        .mockResolvedValueOnce() // advisory lock
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }), // racks exist
+      release: jest.fn(),
+    };
+
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+      .mockResolvedValueOnce({ rows: [{ id: 123 }] }); // fab id
+
+    pool.connect.mockResolvedValue(mockClient);
+
+    await expect(roomService.deleteRoom('Fab1', 1)).rejects.toThrow('Room is not Empty');
+
+    expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room is not Empty' }));
   });
 });

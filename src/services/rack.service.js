@@ -160,7 +160,7 @@ class RackServices {
           GREATEST(
             (SELECT MIN(frontPosition) FROM servers WHERE rackId = $1) - 0,  
             MAX(gap),  
-            ($2 - (SELECT MAX(backPosition) FROM servers WHERE rackId = $1))  -
+            ($2 - (SELECT MAX(backPosition) FROM servers WHERE rackId = $1)) 
           )
       END AS maxgap;`;
       const maxgap = await pool.query(queryGap, [rackId, result.height]);
@@ -201,8 +201,8 @@ class RackServices {
         error.status = 404;
         throw error;
       }
-      const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM servers WHERE rackId = $1)', [id]);
-      if (!isEmpty.rows[0].exists) {
+      const isEmpty = await client.query('SELECT EXISTS(SELECT 1 FROM servers WHERE rackId = $1)', [id]);
+      if (isEmpty.rows[0].exists) {
         logger.error({ message: 'msg=Rack is not Empty' });
         const error = new Error('Rack is not Empty');
         error.status = 400;
