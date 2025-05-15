@@ -26,8 +26,6 @@ cp .env.development .env
 - `npm run lint`: Lint the code.
 - `npm run format`: Format the code.
 
-## metrics
-/metrics
 
 ## Endpoints
 
@@ -48,12 +46,18 @@ cp .env.development .env
 |             /api/rack             | DELETE |      delete rack with r/rk,id    |
 |             /api/rack             |  GET   |    get rack with name,r/rkid     |
 |             /api/server           |  POST  |    create a server               |
-|             /api/server           |  PUT   |    Update a server               |
+|             /api/server           |  PUT   |    Move a server                 |
 |             /api/server           | DELETE |    Delete a server by id         |
+|    /api/server/repair             |  PUT   |     set server healthy           |
+|    /api/server/broken             |  PUT   |    set server not healthy        |
+|    /api/server/name               |  PUT   |       Update serve name          |
 |             /api/server           |  GET   |    Get a server by id            |
 |             /api/server/AllServers|  GET   |   Get all servers                |
-|             /api/server/name      |  GET   |    Get a server by name          |
-|             /api/server/ip        |  GET   |    Get a server by ip            |
-|             /api/server/service   |  GET   | Get all servers by service name  |
-
+|             /api/server/searching |  GET   |    Get a server searching        |
+|    /api/server/allBrokenServers   |  GET   | Get all servers broken           |
+|             /api/ip/pool          |  POST  |    create a ip pool              |
+|             /api/ip/pool          |  GET   |    Get a ippool by id            |
+|             /api/ip/allIp         |  GET   |   Get all service ip             |
+|             /api/ip/usedIp        |  GET   |    Get ips which are used        |
+|    /api/server/allPools           |  GET   | Get all ippools                  |
 
