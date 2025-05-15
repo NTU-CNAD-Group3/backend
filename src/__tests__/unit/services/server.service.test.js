@@ -1,216 +1,303 @@
 import { jest } from '@jest/globals';
 
-const mockQuery = jest.fn();
-const mockClient = {
-    query: jest.fn(),
-    release: jest.fn(),
-  };
-jest.unstable_mockModule('#src/models/db.js', () => ({
+await jest.unstable_mockModule('#src/models/db.js', () => ({
   pool: {
-    query: mockQuery,
-    connect: jest.fn().mockResolvedValue(mockClient),
+    connect: jest.fn(),
+    query: jest.fn(),
   },
-  databaseClose: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockInfo = jest.fn();
-const mockError = jest.fn();
 await jest.unstable_mockModule('#src/utils/logger.js', () => ({
-  default: { info: mockInfo, error: mockError },
+  default: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
-const mockAssign = jest.fn();
-const mockRelease = jest.fn();
 await jest.unstable_mockModule('#src/services/ip.service.js', () => ({
   default: {
-    assign: mockAssign,
-    release: mockRelease,
+    assign: jest.fn(),
+    release: jest.fn(),
   },
 }));
 
 const serverService = (await import('#src/services/server.service.js')).default;
+const { pool } = await import('#src/models/db.js');
+const logger = (await import('#src/utils/logger.js')).default;
 const ipService = (await import('#src/services/ip.service.js')).default;
 
-describe('ServerServices', () => {
-  beforeEach(() => {
+describe('ServerServices 全面測試', () => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  /* ------------------------------------------------
-   * createServer
-   * ---------------------------------------------- */
   describe('createServer', () => {
-    const params = ['Server-A', 'svc-A', 1, 1, 1, 1, 1, 2];
-
-    test('creates server when rack slot free', async () => {
-      const fake = { id: 1, name: 'Server-A' };
-
-      ipService.assign.mockResolvedValueOnce(['10.0.0.1', 1])
-
+    it('成功建立 Server', async () => {
+      const mockClient = {
+        query: jest.fn(),
+        release: jest.fn(),
+      };
+      pool.connect.mockResolvedValue(mockClient);
       mockClient.query
-        .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({ rows: [] })
-        .mockResolvedValueOnce({ rows: [fake] })
-        .mockResolvedValueOnce({});
+        .mockResolvedValueOnce() // BEGIN
+        .mockResolvedValueOnce() // lock
+        .mockResolvedValueOnce({ rows: [{ exists: true }] }) // rack exists
+        .mockResolvedValueOnce({ rows: [{ service: 'svc' }] }) // rack service check
+        .mockResolvedValueOnce({ rows: [] }) // position overlap
+        .mockResolvedValueOnce({ rows: [{ id: 1, name: 'server1' }] }) // insert server
+        .mockResolvedValueOnce() // unlock
+        .mockResolvedValueOnce(); // COMMIT
 
-      const result = await serverService.createServer(...params);
-      expect(result).toEqual(fake);
-      expect(mockClient.query).toHaveBeenCalledTimes(4);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server created') }));
+      ipService.assign.mockResolvedValue(['10.0.0.1', 123]);
+
+      const result = await serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2);
+
+      expect(result).toMatchObject({ id: 1, name: 'server1' });
+      expect(mockClient.release).toHaveBeenCalled();
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server created') }));
     });
 
-    test('throws when rack slot overlaps', async () => {
+    it('Rack 不存在應該丟錯誤', async () => {
+      const mockClient = {
+        query: jest.fn(),
+        release: jest.fn(),
+      };
+      pool.connect.mockResolvedValue(mockClient);
       mockClient.query
-        .mockResolvedValueOnce({}) 
-        .mockResolvedValueOnce({ rows: [{ id: 99 }] });
-      await expect(serverService.createServer(...params)).rejects.toThrow('Position already occupied in this rack.');
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server create') }));
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ exists: false }] });
+
+      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow('Rack not found');
+
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('Rack Service 不符應該丟錯誤', async () => {
+      const mockClient = {
+        query: jest.fn(),
+        release: jest.fn(),
+      };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ exists: true }] })
+        .mockResolvedValueOnce({ rows: [{ service: 'other-svc' }] });
+
+      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow('Server with the service can not insert to this rack');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('位置重疊應該丟錯誤', async () => {
+      const mockClient = {
+        query: jest.fn(),
+        release: jest.fn(),
+      };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ exists: true }] })
+        .mockResolvedValueOnce({ rows: [{ service: 'svc' }] })
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] });
+
+      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow('Position already occupied in this rack.');
+      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
-  /* ------------------------------------------------
-   * deleteServer
-   * ---------------------------------------------- */
   describe('deleteServer', () => {
-    test('deletes server and returns row', async () => {
+    it('成功刪除 Server', async () => {
+      const mockClient = { query: jest.fn(), release: jest.fn() };
+      pool.connect.mockResolvedValue(mockClient);
       mockClient.query
-        .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({ rows: [{ id: 42 }]})
-        .mockResolvedValueOnce({});
-      const res = await serverService.deleteServer(42);
-      expect(res.id).toBe(42);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 42 deleted') }));
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce();
+      ipService.release.mockResolvedValue('10.0.0.1');
+
+      await serverService.deleteServer(1, 100);
+
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('deleted') }));
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
-    test('logs error and returns undefined on failure', async () => {
-      mockClient.query.mockRejectedValueOnce(new Error('db err'));
-      const res = await serverService.deleteServer(1);
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 1 deleted error') }));
-    });
-  });
+    it('刪除失敗會 rollback', async () => {
+      const mockClient = { query: jest.fn(), release: jest.fn() };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query.mockResolvedValueOnce();
+      mockClient.query.mockRejectedValueOnce(new Error('fail lock'));
+      ipService.release.mockRejectedValueOnce(new Error('fail release'));
 
-  /* ------------------------------------------------
-   * updateServer
-   * ---------------------------------------------- */
-  describe('updateServer', () => {
-    const args = [7, 'Srv-New', 'svc', '10.0.0.7', 1, 1, 1, 1, 1, 1, 2, true];
+      await expect(serverService.deleteServer(1, 100)).resolves.toBeUndefined();
 
-    test('updates server', async () => {
-      const row = { id: 7 };
-      mockQuery.mockResolvedValueOnce({ rows: [row] });
-      const res = await serverService.updateServer(...args);
-      expect(res).toEqual(row);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 7 updated') }));
-    });
-
-    test('logs error and returns undefined on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('fail'));
-      const res = await serverService.updateServer(...args);
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Server 7 updated error') }));
+      expect(logger.error).toHaveBeenCalled();
+      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
-  /* ------------------------------------------------
-   * getServer
-   * ---------------------------------------------- */
+  describe('moveServer', () => {
+    it('成功搬移 Server', async () => {
+      const mockClient = { query: jest.fn(), release: jest.fn() };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ service: 'svc' }] })
+        .mockResolvedValueOnce({ rows: [] });
+      pool.query.mockResolvedValueOnce();
+      mockClient.query.mockResolvedValueOnce()
+        .mockResolvedValueOnce();
+
+      await serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2);
+
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('moved') }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('搬移位置重疊錯誤', async () => {
+      const mockClient = { query: jest.fn(), release: jest.fn() };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ service: 'svc' }] })
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] });
+
+      await expect(serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2)).rejects.toThrow('Position already occupied in this rack.');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('Rack Service 不符錯誤', async () => {
+      const mockClient = { query: jest.fn(), release: jest.fn() };
+      pool.connect.mockResolvedValue(mockClient);
+      mockClient.query
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce()
+        .mockResolvedValueOnce({ rows: [{ service: 'other' }] });
+
+      await expect(serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2)).rejects.toThrow('Server with the service can not insert to this rack');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+  });
+
+  describe('repair', () => {
+    it('成功標記 repair', async () => {
+      pool.query.mockResolvedValue();
+      await serverService.repair(1);
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('repaird') }));
+    });
+
+    it('repair 失敗', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.repair(1)).rejects.toThrow();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('broken', () => {
+    it('成功標記 broken', async () => {
+      pool.query.mockResolvedValue();
+      await serverService.broken(1);
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('broken') }));
+    });
+
+    it('broken 失敗', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.broken(1)).rejects.toThrow();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('getAllServerBroken', () => {
+    it('成功取得所有 broken server', async () => {
+      pool.query.mockResolvedValue({ rows: [{ id: 1, healthy: false }] });
+      const result = await serverService.getAllServerBroken();
+      expect(result).toHaveLength(1);
+      expect(logger.info).toHaveBeenCalled();
+    });
+
+    it('取得 broken server 失敗', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.getAllServerBroken()).rejects.toThrow();
+      expect(logger.error).toHaveBeenCalled();
+    });
+  });
+  describe('updateServerName', () => {
+    it('成功更新 Server 名稱', async () => {
+      pool.query.mockResolvedValue();
+      await serverService.updateServerName(1, 'newName');
+      expect(logger.info).toHaveBeenCalled();
+    });
+    it('更新名稱失敗', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.updateServerName(1, 'newName')).rejects.toThrow('fail');
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('updateServerName error'),
+      }));
+    });
+  });
+
   describe('getServer', () => {
-    test('returns server by id', async () => {
-      const row = { id: 3 };
-      mockQuery.mockResolvedValueOnce({ rows: [row] });
-      const res = await serverService.getServer(3);
-      expect(res).toEqual(row);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by id=3') }));
+    it('成功取得單一 server', async () => {
+      pool.query.mockResolvedValue({ rows: [{ id: 1, name: 'server1' }] });
+      const result = await serverService.getServer(1);
+      expect(result).toEqual([{ id: 1, name: 'server1' }]);
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Get server by id=1'),
+      }));
     });
 
-    test('logs error and returns undefined on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('fail'));
-      const res = await serverService.getServer(1);
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by id=1 error') }));
+    it('取得 server 發生錯誤', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      const result = await serverService.getServer(1);
+      expect(result).toBeUndefined();
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Get server by id=1 error'),
+      }));
     });
   });
 
-  /* ------------------------------------------------
-   * getAllServers
-   * ---------------------------------------------- */
   describe('getAllServers', () => {
-    test('lists all servers', async () => {
-      const list = [{ id: 1 }];
-      mockQuery.mockResolvedValueOnce({ rows: list });
-      const res = await serverService.getAllServers();
-      expect(res).toEqual(list);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers') }));
+    it('成功取得所有 server', async () => {
+      pool.query.mockResolvedValue({ rows: [{ id: 1 }, { id: 2 }] });
+      const result = await serverService.getAllServers();
+      expect(result).toHaveLength(2);
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Get all servers'),
+      }));
     });
 
-    test('logs error and returns undefined on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('err'));
-      const res = await serverService.getAllServers();
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers error') }));
-    });
-  });
-
-  /* ------------------------------------------------
-   * getServerByName
-   * ---------------------------------------------- */
-  describe('getServerByName', () => {
-    test('finds by name', async () => {
-      const srv = { id: 11 };
-      mockQuery.mockResolvedValueOnce({ rows: [srv] });
-      const res = await serverService.getServerByName('abc');
-      expect(res).toEqual(srv);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by name=abc') }));
-    });
-
-    test('logs error on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('fail'));
-      const res = await serverService.getServerByName('abc');
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by name=abc error') }));
+    it('取得所有 server 發生錯誤', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.getAllServers()).rejects.toThrow('fail');
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Get all servers error'),
+      }));
     });
   });
 
-  /* ------------------------------------------------
-   * getServerByIp
-   * ---------------------------------------------- */
-  describe('getServerByIp', () => {
-    test('finds by ip', async () => {
-      const srv = { id: 8 };
-      mockQuery.mockResolvedValueOnce({ rows: [srv] });
-      const res = await serverService.getServerByIp('10.0.0.8');
-      expect(res).toEqual(srv);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by ip=10.0.0.8') }));
+  describe('getServerByType', () => {
+    it('成功使用模糊搜尋', async () => {
+      pool.query.mockResolvedValue({ rows: [{ id: 1, name: 'example' }] });
+      const result = await serverService.getServerByType('exa', 'name', 0, 10);
+      expect(result).toEqual([{ id: 1, name: 'example' }]);
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('getServerByType'),
+      }));
     });
 
-    test('logs error on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('fail'));
-      const res = await serverService.getServerByIp('10');
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get server by ip=10 error') }));
-    });
-  });
-
-  /* ------------------------------------------------
-   * getAllServerByService
-   * ---------------------------------------------- */
-  describe('getAllServerByService', () => {
-    test('lists by service', async () => {
-      const list = [{ id: 5 }];
-      mockQuery.mockResolvedValueOnce({ rows: list });
-      const res = await serverService.getAllServerByService('db');
-      expect(res).toEqual(list);
-      expect(mockInfo).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Get all servers by service=db') }));
-    });
-
-    test('logs error on failure', async () => {
-      mockQuery.mockRejectedValueOnce(new Error('fail'));
-      const res = await serverService.getAllServerByService('web');
-      expect(res).toBeUndefined();
-      expect(mockError).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Get all servers by service=web error') }),
-      );
+    it('模糊搜尋失敗', async () => {
+      pool.query.mockRejectedValue(new Error('fail'));
+      await expect(serverService.getServerByType('exa', 'name', 0, 10)).rejects.toThrow('fail');
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('getServerByType error'),
+      }));
     });
   });
 });

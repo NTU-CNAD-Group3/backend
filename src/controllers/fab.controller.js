@@ -2,33 +2,6 @@ import fabService from '#src/services/fab.service.js';
 // getFabDetails, getAllRooms,
 const { getAllFabs, getFab, createFab, updateFab, deleteFab } = fabService;
 
-// export const getFabDetailsController = async (req, res) => {
-//   const { name } = req.query;
-//   if (name == null) {
-//     return res.status(400).json({ error: 'Name is required' });
-//   }
-//   try {
-//     const fabDetails = await getFabDetails(name);
-//     console.log(fabDetails);
-//     res.status(200).json(fabDetails.rows);
-//   } catch (error) {
-//     res.status(500).json({ error: `Can not get fab details` });
-//   }
-// };
-
-// export const getAllRoomsController = async (req, res) => {
-//   const { id } = req.params;
-//   if (id == null) {
-//     return res.status(400).json({ error: 'Fab ID is required' });
-//   }
-//   try {
-//     const rooms = await getAllRooms(id);
-//     res.status(200).json(rooms);
-//   } catch (error) {
-//     res.status(500).json({ error: `Can not get all rooms` });
-//   }
-// };
-
 export const getAllFabsController = async (req, res) => {
   const fabs = await getAllFabs();
   res.status(200).json({ data: fabs, message: 'OK' });

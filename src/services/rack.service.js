@@ -7,7 +7,7 @@ class RackServices {
     try {
       await client.query('BEGIN');
 
-      const lockKey = 3001;
+      const lockKey = 3000000000000000 + roomId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
 
       const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
@@ -49,7 +49,7 @@ class RackServices {
         ]);
       });
       await Promise.all(rackPromises);
-      await client.query('UPDATE rooms SET hasRack = hasRack + $1 WHERE id=$2;', [rackNum, roomId]);
+      await client.query('UPDATE rooms SET hasRack = hasRack + $1,updatedAt = NOW() WHERE id=$2;', [rackNum, roomId]);
 
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
@@ -89,8 +89,8 @@ class RackServices {
     }
     const query = ` 
       SELECT 
-        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.service, rk.height,
-        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.maxEmpty, rk.height,rk.createdAt,rk.updatedAt,
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition AS serverFrontPosition, s.backPosition AS serverBackPosition, s.updatedAt as serverUpdateTime
       FROM rooms r
       LEFT JOIN racks rk ON rk.roomId = r.id
       LEFT JOIN servers s ON s.rackId = rk.id
@@ -109,8 +109,10 @@ class RackServices {
       updatedAt: null,
       servers: {},
     };
-
-    const occupied = [];
+    let a = new Date('2024-05-10T12:00:00Z');
+    let b = new Date('2024-05-11T12:00:00Z');
+    let shouldupdate = false;
+    // const occupied = [];
     for (const row of rows) {
       if (!result.name) {
         result.id = row.rack_id;
@@ -120,6 +122,7 @@ class RackServices {
         result.service = row.service;
         result.createdAt = row.createdat;
         result.updatedAt = row.updatedat;
+        a = new Date(row.updatedat);
       }
 
       // Only if there is a server
@@ -129,41 +132,43 @@ class RackServices {
         result.servers[serverKey] = {
           id: row.server_id,
           name: row.server_name,
+          serverFrontPosition: row.serverfrontposition,
+          serverBackPosition: row.serverbackposition,
         };
-
-        if (row.serverfrontposition != null && row.serverbackposition != null) {
-          occupied.push([Number(row.serverfrontposition), Number(row.serverbackposition)]);
+        b = new Date(row.serverUpdateTime);
+        if (a < b) {
+          shouldupdate = true;
         }
+        // if (row.serverfrontposition != null && row.serverbackposition != null) {
+        //   occupied.push([Number(row.serverfrontposition), Number(row.serverbackposition)]);
+        // }
       }
     }
+    if (shouldupdate) {
+      const queryGap = `WITH gaps AS (
+        SELECT
+          LAG(backPosition, 1, 0) OVER (ORDER BY frontPosition) AS prev_end,
+          frontPosition - LAG(backPosition, 1, 0) OVER (ORDER BY frontPosition) AS gap
+        FROM servers
+        WHERE rackId = $1
+        ORDER BY frontPosition
+      )
+      SELECT 
+        CASE 
+          WHEN NOT EXISTS (SELECT 1 FROM servers WHERE rackId = $1) THEN $2  
+        ELSE
+          GREATEST(
+            (SELECT MIN(frontPosition) FROM servers WHERE rackId = $1) - 0,  
+            MAX(gap),  
+            ($2 - (SELECT MAX(backPosition) FROM servers WHERE rackId = $1)) 
+          )
+      END AS maxgap;`;
+      const maxgap = await pool.query(queryGap, [rackId, result.height]);
+      result.maxEmpty = maxgap;
 
-    if (result.height) {
-      // 若沒有伺服器直接等於機櫃高度
-      if (occupied.length === 0) {
-        result.maxEmpty = result.height;
-      } else {
-        // 依 frontPosition 排序
-        occupied.sort((a, b) => a[0] - b[0]);
-
-        // 計算起始空隙
-        let maxGap = occupied[0][0] - 1; // 我先當position >= 1
-
-        // 計算中間空隙
-        for (let i = 1; i < occupied.length; i++) {
-          const gap = occupied[i][0] - occupied[i - 1][1] - 1;
-          if (gap > maxGap) maxGap = gap;
-        }
-
-        // 計算結尾空隙
-        const tailGap = result.height - occupied[occupied.length - 1][1];
-        if (tailGap > maxGap) maxGap = tailGap;
-
-        result.maxEmpty = maxGap;
-      }
+      // update maxEmpty
+      await pool.query('UPDATE racks SET maxEmpty = $1,updatedAt = NOW() WHERE id = $2', [rackId, result.maxEmpty]);
     }
-
-    // update maxEmpty
-    await pool.query('UPDATE racks SET maxEmpty = $1 WHERE id = $2', [result.maxEmpty, rackId]);
 
     logger.info({ message: `msg=Rack ${rackId} get` });
     return result;
@@ -177,33 +182,43 @@ class RackServices {
       error.status = 404;
       throw error;
     }
-    await pool.query('UPDATE racks SET name = $1 WHERE id = $2', [name, rackId]);
+    await pool.query('UPDATE racks SET name = $1,updatedAt = NOW() WHERE id = $2', [name, rackId]);
     logger.info({
       message: `msg=Rack ${rackId} updated`,
     });
   }
 
   async deleteRack(roomId, id) {
-    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [roomId]);
-    if (!inTable.rows[0].exists) {
-      logger.error({ message: `msg=Rack not found` });
-      const error = new Error('Rack not found');
-      error.status = 404;
-      throw error;
-    }
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const lockKey = 3000000000000000 + roomId;
+      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1 and roomId = $2)', [id, roomId]);
+      if (!inTable.rows[0].exists) {
+        logger.error({ message: `msg=Rack not found` });
+        const error = new Error('Rack not found');
+        error.status = 404;
+        throw error;
+      }
+      const isEmpty = await client.query('SELECT EXISTS(SELECT 1 FROM servers WHERE rackId = $1)', [id]);
+      if (isEmpty.rows[0].exists) {
+        logger.error({ message: 'msg=Rack is not Empty' });
+        const error = new Error('Rack is not Empty');
+        error.status = 400;
+        throw error;
+      }
       await client.query('DELETE FROM racks WHERE id = $1', [id]);
-      await client.query('UPDATE rooms SET hasRack = hasRack - 1 WHERE id=$1;', [roomId]);
+      await client.query('UPDATE rooms SET hasRack = hasRack - 1,updatedAt = NOW() WHERE id=$1;', [roomId]);
+      await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
-        message: `msg=Rack ${roomId} deleted`,
+        message: `msg=Rack ${id} deleted`,
       });
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error({
-        message: `msg=Rack ${roomId} deleted error`,
+        message: `msg=Rack ${id} deleted error`,
       });
       throw error;
     } finally {

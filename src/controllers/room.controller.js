@@ -13,13 +13,13 @@ export const getRoomController = async (req, res) => {
 };
 
 export const createRoomsController = async (req, res) => {
-  const { name, roomNum, roomArray } = req.body;
-  if (name == null || roomNum == null || roomArray == null) {
-    const error = new Error('Name, roomNum and roomArray are required');
+  const { fabName, roomNum, roomArray } = req.body;
+  if (fabName == null || roomNum == null || roomArray == null) {
+    const error = new Error('fabName, roomNum and roomArray are required');
     error.status = 400;
     throw error;
   }
-  await createRooms(name, roomNum, roomArray);
+  await createRooms(fabName, roomNum, roomArray);
   res.status(201).json({ message: 'Created' });
 };
 
@@ -34,13 +34,13 @@ export const updateRoomController = async (req, res) => {
   res.status(200).json({ message: 'Updated' });
 };
 export const deleteRoomController = async (req, res) => {
-  const { name, roomId } = req.body;
-  if (name == null || roomId == null) {
-    const error = new Error('Name and roomId are required');
+  const { fabName, roomId } = req.body;
+  if (fabName == null || roomId == null) {
+    const error = new Error('fabName and roomId are required');
     error.status = 400;
     throw error;
   }
-  await deleteRoom(name, roomId);
+  await deleteRoom(fabName, roomId);
   res.status(200).json({ message: 'Deleted' });
 };
 

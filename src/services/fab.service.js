@@ -1,56 +1,6 @@
 import { pool } from '#src/models/db.js';
 import logger from '#src/utils/logger.js';
 class FabServices {
-  // async getFabDetails(name) {
-  //   try {
-  //     // 可以自己改要印出甚麼記得名子衝突要重新用AS命名
-  //     // 也可以同時多張表，利用多個LEFT JOIN
-  //     const query = `
-  //           SELECT  f.id AS fabId,
-  //                   f.name AS fabName,
-  //                   f.roomNum,
-  //                   r.id AS roomId,
-  //                   r.name AS roomName,
-  //                   r.rackNum,
-  //                   r.height,
-  //                   rk.id AS rackId,
-  //                   rk.name AS rackName,
-  //                   rk.service,
-  //                   s.name AS severName,
-  //                   s.ip,
-  //                   s.service AS serverService
-  //           FROM fabs f
-  //           LEFT JOIN rooms r ON r.fabId = f.id
-  //           LEFT JOIN racks rk ON rk.roomId = r.id
-  //           LEFT JOIN servers s ON s.rackId = rk.id
-  //           WHERE f.name = $1;
-  //           `;
-  //     const result = await pool.query(query, [name]);
-  //     logger.info({
-  //       message: `msg=All fab's details get`,
-  //     });
-  //     return result;
-  //   } catch (error) {
-  //     logger.error({
-  //       message: `msg=getFabDetails error error=${error}`,
-  //     });
-  //   }
-  // }
-
-  // async getAllRooms(id) {
-  //   try {
-  //     const result = await pool.query('SELECT * FROM Rooms WHERE fabId = $1', [id]);
-  //     logger.info({
-  //       message: `msg=AllRooms get`,
-  //     });
-  //     return result.rows;
-  //   } catch (error) {
-  //     logger.error({
-  //       message: `msg=Getall rooms error error=${error}`,
-  //     });
-  //   }
-  // }
-
   async getFab(name) {
     const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [name]);
     if (!inTable.rows[0].exists) {
@@ -244,7 +194,7 @@ class FabServices {
     return result.rows[0];
   }
 
-  async updateFab(id, name, roomNum) {
+  async updateFab(id, name) {
     const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE id = $1)', [id]);
     if (!inTable.rows[0].exists) {
       logger.error({ message: 'msg=Fab not found' });
@@ -259,7 +209,7 @@ class FabServices {
       error.status = 400;
       throw error;
     }
-    await pool.query('UPDATE fabs SET name = $1 WHERE id = $2', [name, id]);
+    await pool.query('UPDATE fabs SET name = $1,updatedAt = NOW() WHERE id = $2', [name, id]);
     logger.info({
       message: `msg=Fab updated name=${name}`,
     });
@@ -270,6 +220,14 @@ class FabServices {
     if (!naming.rows[0].exists) {
       logger.error({ message: 'msg=Fab not found' });
       const error = new Error('The name does not exist');
+      error.status = 404;
+      throw error;
+    }
+    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [name])).rows[0].id;
+    const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE fabId = $1)', [id]);
+    if (isEmpty.rows[0].exists) {
+      logger.error({ message: 'msg=Fab is not Empty' });
+      const error = new Error('Fab is not Empty');
       error.status = 400;
       throw error;
     }
@@ -282,3 +240,53 @@ class FabServices {
 const fabService = new FabServices();
 
 export default fabService;
+
+// async getFabDetails(name) {
+//   try {
+//     // 可以自己改要印出甚麼記得名子衝突要重新用AS命名
+//     // 也可以同時多張表，利用多個LEFT JOIN
+//     const query = `
+//           SELECT  f.id AS fabId,
+//                   f.name AS fabName,
+//                   f.roomNum,
+//                   r.id AS roomId,
+//                   r.name AS roomName,
+//                   r.rackNum,
+//                   r.height,
+//                   rk.id AS rackId,
+//                   rk.name AS rackName,
+//                   rk.service,
+//                   s.name AS severName,
+//                   s.ip,
+//                   s.service AS serverService
+//           FROM fabs f
+//           LEFT JOIN rooms r ON r.fabId = f.id
+//           LEFT JOIN racks rk ON rk.roomId = r.id
+//           LEFT JOIN servers s ON s.rackId = rk.id
+//           WHERE f.name = $1;
+//           `;
+//     const result = await pool.query(query, [name]);
+//     logger.info({
+//       message: `msg=All fab's details get`,
+//     });
+//     return result;
+//   } catch (error) {
+//     logger.error({
+//       message: `msg=getFabDetails error error=${error}`,
+//     });
+//   }
+// }
+
+// async getAllRooms(id) {
+//   try {
+//     const result = await pool.query('SELECT * FROM Rooms WHERE fabId = $1', [id]);
+//     logger.info({
+//       message: `msg=AllRooms get`,
+//     });
+//     return result.rows;
+//   } catch (error) {
+//     logger.error({
+//       message: `msg=Getall rooms error error=${error}`,
+//     });
+//   }
+// }

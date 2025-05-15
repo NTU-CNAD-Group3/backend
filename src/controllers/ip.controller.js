@@ -1,17 +1,17 @@
 import ipSerive from '#src/services/ip.service.js';
 
-const { assign, createIpPool, release, getAllIp, getUsedIp, getIpPool, getAllIpPools } = ipSerive;
+const { createIpPool, getAllIp, getUsedIp, getIpPool, getAllIpPools } = ipSerive;
 
-export const assignController = async (req, res) => {
-  const { service } = req.body;
-  if (service == null) {
-    const error = new Error('Service are required');
-    error.status = 400;
-    throw error;
-  }
-  const assignedIp = await assign(service);
-  res.status(201).json({ data: assignedIp, message: 'Assigned' });
-};
+// export const assignController = async (req, res) => {
+//   const { service } = req.body;
+//   if (service == null) {
+//     const error = new Error('Service are required');
+//     error.status = 400;
+//     throw error;
+//   }
+//   const assignedIp = await assign(service);
+//   res.status(201).json({ data: assignedIp, message: 'Assigned' });
+// };
 
 export const createIpPoolController = async (req, res) => {
   const { service, cidrBlock } = req.body;
@@ -24,16 +24,16 @@ export const createIpPoolController = async (req, res) => {
   res.status(201).json({ data: ipPool, message: 'Created' });
 };
 
-export const releaseController = async (req, res) => {
-  const { id } = req.params;
-  if (id == null) {
-    const error = new Error('Server ID are required');
-    error.status = 400;
-    throw error;
-  }
-  const releasedIP = await release(id);
-  res.status(200).json({ data: releasedIP, message: 'Released' });
-};
+// export const releaseController = async (req, res) => {
+//   const { id } = req.params;
+//   if (id == null) {
+//     const error = new Error('Server ID are required');
+//     error.status = 400;
+//     throw error;
+//   }
+//   const releasedIP = await release(id);
+//   res.status(200).json({ data: releasedIP, message: 'Released' });
+// };
 
 export const getAllIpController = async (req, res) => {
   const { service } = req.query;
@@ -66,9 +66,9 @@ export const getIpPoolController = async (req, res) => {
   }
   const ipPool = await getIpPool(service);
   res.status(200).json({ data: ipPool, message: 'OK' });
-}
+};
 
 export const getAllIpPoolsController = async (req, res) => {
   const ipPools = await getAllIpPools();
   res.status(200).json({ data: ipPools, message: 'OK' });
-}
+};

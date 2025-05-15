@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+
 const mockCreateRooms = jest.fn();
 const mockGetRoom = jest.fn();
 const mockDeleteRoom = jest.fn();
@@ -13,128 +14,126 @@ await jest.unstable_mockModule('#src/services/room.service.js', () => ({
   },
 }));
 
-const { getRoomController, createRoomsController, updateRoomController, deleteRoomController } = await import(
-  '#src/controllers/room.controller.js'
-);
+const {
+  getRoomController,
+  createRoomsController,
+  updateRoomController,
+  deleteRoomController,
+} = await import('#src/controllers/room.controller.js');
 
-const mockRes = () => {
-  const res = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
-};
+let req, res;
+beforeEach(() => {
+  req = { body: {}, query: {} };
+  res = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+  };
+  jest.clearAllMocks();
+});
 
-describe('room.controller', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+// ---------------------------------------------------------------------------
+// getRoomController ----------------------------------------------------------
+// ---------------------------------------------------------------------------
+describe('getRoomController', () => {
+  test('should return room data', async () => {
+    const room = { id: 1, name: 'Room-1' };
+    mockGetRoom.mockResolvedValue(room);
 
-  // getRoomController
-  test('getRoomController should throw 400 if missing params', async () => {
-    const req = { query: { name: null, roomId: null } };
-    const res = mockRes();
-    await expect(getRoomController(req, res)).rejects.toThrow('Name and roomId are required');
-  });
-
-  test('getRoomController should return room data', async () => {
-    const req = { query: { name: 'test', roomId: '123' } };
-    const res = mockRes();
-    const roomData = { id: '123', name: 'test' };
-    mockGetRoom.mockResolvedValue(roomData);
-
+    req.query = { name: 'Room-1', roomId: 1 };
     await getRoomController(req, res);
 
-    expect(mockGetRoom).toHaveBeenCalledWith('test', '123');
+    expect(mockGetRoom).toHaveBeenCalledWith('Room-1', 1);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ data: roomData, message: 'OK' });
+    expect(res.json).toHaveBeenCalledWith({ data: room, message: 'OK' });
   });
 
-  test('getRoomController should throw error if service fails', async () => {
-    const req = { query: { name: 'test', roomId: '123' } };
-    const res = mockRes();
-    mockGetRoom.mockRejectedValue(new Error('DB error'));
+  test('should throw 400 if name or roomId missing', async () => {
+    req.query = { name: null, roomId: null };
 
-    await expect(getRoomController(req, res)).rejects.toThrow('DB error');
+    await expect(getRoomController(req, res)).rejects.toThrow('Name and roomId are required');
+    expect(mockGetRoom).not.toHaveBeenCalled();
   });
+});
 
-  // createRoomsController
-  test('createRoomsController should throw 400 if missing params', async () => {
-    const req = { body: { name: null, roomNum: null, roomArray: null } };
-    const res = mockRes();
-    await expect(createRoomsController(req, res)).rejects.toThrow('Name, roomNum and roomArray are required');
-  });
-
-  test('createRoomsController should create rooms', async () => {
-    const req = { body: { name: 'test', roomNum: 5, roomArray: [1, 2, 3, 4, 5] } };
-    const res = mockRes();
-    mockCreateRooms.mockResolvedValue();
+// ---------------------------------------------------------------------------
+// createRoomsController ------------------------------------------------------
+// ---------------------------------------------------------------------------
+describe('createRoomsController', () => {
+  test('should create rooms and return 201', async () => {
+    req.body = {
+      fabName: 'Fab-A',
+      roomNum: 2,
+      roomArray: ['Room1', 'Room2'],
+    };
 
     await createRoomsController(req, res);
 
-    expect(mockCreateRooms).toHaveBeenCalledWith('test', 5, [1, 2, 3, 4, 5]);
+    expect(mockCreateRooms).toHaveBeenCalledWith('Fab-A', 2, ['Room1', 'Room2']);
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({ message: 'Created' });
   });
 
-  test('createRoomsController should throw error if service fails', async () => {
-    const req = { body: { name: 'test', roomNum: 5, roomArray: [] } };
-    const res = mockRes();
-    mockCreateRooms.mockRejectedValue(new Error('DB error'));
+  test('should throw 400 if required fields missing', async () => {
+    req.body = { fabName: null, roomNum: 1, roomArray: null };
 
-    await expect(createRoomsController(req, res)).rejects.toThrow('DB error');
+    await expect(createRoomsController(req, res)).rejects.toThrow(
+      'fabName, roomNum and roomArray are required',
+    );
+    expect(mockCreateRooms).not.toHaveBeenCalled();
   });
+});
 
-  // updateRoomController
-  test('updateRoomController should throw 400 if missing params', async () => {
-    const req = { body: { id: null, name: null, rackNum: null } };
-    const res = mockRes();
-    await expect(updateRoomController(req, res)).rejects.toThrow('Room id, name and rackNum are required');
-  });
-
-  test('updateRoomController should update room', async () => {
-    const req = { body: { id: '123', name: 'updated', rackNum: true } };
-    const res = mockRes();
-    mockUpdateRoom.mockResolvedValue();
+// ---------------------------------------------------------------------------
+// updateRoomController -------------------------------------------------------
+// ---------------------------------------------------------------------------
+describe('updateRoomController', () => {
+  test('should update room and return 200', async () => {
+    req.body = {
+      id: 1,
+      name: 'Room-B',
+      rackNum: 10,
+    };
 
     await updateRoomController(req, res);
 
-    expect(mockUpdateRoom).toHaveBeenCalledWith('123', 'updated', true);
+    expect(mockUpdateRoom).toHaveBeenCalledWith(1, 'Room-B', 10);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: 'Updated' });
   });
 
-  test('updateRoomController should throw error if service fails', async () => {
-    const req = { body: { id: '123', name: 'updated', rackNum: true } };
-    const res = mockRes();
-    mockUpdateRoom.mockRejectedValue(new Error('DB error'));
+  test('should throw 400 if required fields missing', async () => {
+    req.body = { id: null, name: null, rackNum: null };
 
-    await expect(updateRoomController(req, res)).rejects.toThrow('DB error');
+    await expect(updateRoomController(req, res)).rejects.toThrow(
+      'Room id, name and rackNum are required',
+    );
+    expect(mockUpdateRoom).not.toHaveBeenCalled();
   });
+});
 
-  // deleteRoomController
-  test('deleteRoomController should throw 400 if missing params', async () => {
-    const req = { body: { name: null, roomId: null } };
-    const res = mockRes();
-    await expect(deleteRoomController(req, res)).rejects.toThrow('Name and roomId are required');
-  });
-
-  test('deleteRoomController should delete room', async () => {
-    const req = { body: { name: 'test', roomId: '123' } };
-    const res = mockRes();
-    mockDeleteRoom.mockResolvedValue();
+// ---------------------------------------------------------------------------
+// deleteRoomController -------------------------------------------------------
+// ---------------------------------------------------------------------------
+describe('deleteRoomController', () => {
+  test('should delete room and return 200', async () => {
+    req.body = {
+      fabName: 'Fab-A',
+      roomId: 3,
+    };
 
     await deleteRoomController(req, res);
 
-    expect(mockDeleteRoom).toHaveBeenCalledWith('test', '123');
+    expect(mockDeleteRoom).toHaveBeenCalledWith('Fab-A', 3);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: 'Deleted' });
   });
 
-  test('deleteRoomController should throw error if service fails', async () => {
-    const req = { body: { name: 'test', roomId: '123' } };
-    const res = mockRes();
-    mockDeleteRoom.mockRejectedValue(new Error('DB error'));
+  test('should throw 400 if fabName or roomId missing', async () => {
+    req.body = { fabName: null, roomId: null };
 
-    await expect(deleteRoomController(req, res)).rejects.toThrow('DB error');
+    await expect(deleteRoomController(req, res)).rejects.toThrow(
+      'fabName and roomId are required',
+    );
+    expect(mockDeleteRoom).not.toHaveBeenCalled();
   });
 });

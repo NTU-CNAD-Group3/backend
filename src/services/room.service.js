@@ -14,8 +14,8 @@ class RoomServices {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const lockKey = 2001;
-      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+      const lockKey = 2000000000000000 + id;
+      await client.query('SELECT pg_advisory_lock($1)', [lockKey]);
 
       const hasRack = 0;
       const roomPromises = roomArray.map((room) => {
@@ -28,7 +28,7 @@ class RoomServices {
         ]);
       });
       await Promise.all(roomPromises);
-      await client.query('UPDATE fabs SET roomNum = roomNum + $1 WHERE name=$2;', [roomNum, fabName]);
+      await client.query('UPDATE fabs SET roomNum = roomNum + $1,updatedAt = NOW() WHERE name=$2;', [roomNum, fabName]);
 
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
@@ -134,25 +134,44 @@ class RoomServices {
       error.status = 404;
       throw error;
     }
-    await pool.query('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [rackNum, name, roomId]);
+    await pool.query('UPDATE rooms SET rackNum = $1, name = $2,updatedAt = NOW() WHERE id = $3', [rackNum, name, roomId]);
     logger.info({
       message: `msg=Room ${roomId} updated`,
     });
   }
 
   async deleteRoom(fabName, roomId) {
-    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
+    const inTable = await pool.query('SELECT EXISTS(SELECT 1 FROM fabs WHERE name = $1)', [fabName]);
     if (!inTable.rows[0].exists) {
-      logger.error({ message: `msg=Room not found` });
-      const error = new Error('Room not found');
+      logger.error({ message: `msg=Fab not found` });
+      const error = new Error('DC not found');
       error.status = 404;
       throw error;
     }
+    const id = (await pool.query('SELECT id FROM fabs WHERE name = $1', [fabName])).rows[0].id;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const lockKey = 2000000000000000 + id;
+      await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
+      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [roomId]);
+      if (!inTable.rows[0].exists) {
+        logger.error({ message: `msg=Room not found` });
+        const error = new Error('Room not found');
+        error.status = 404;
+        throw error;
+      }
+
+      const isEmpty = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE roomId = $1)', [roomId]);
+      if (isEmpty.rows[0].exists) {
+        logger.error({ message: 'msg=Room is not Empty' });
+        const error = new Error('Room is not Empty');
+        error.status = 400;
+        throw error;
+      }
       await client.query('DELETE FROM rooms WHERE id = $1', [roomId]);
-      await client.query('UPDATE fabs SET roomNum = roomNum - 1 WHERE name=$1;', [fabName]);
+      await client.query('UPDATE fabs SET roomNum = roomNum - 1,updatedAt = NOW() WHERE name=$1;', [fabName]);
+      await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
         message: `msg=Room ${roomId} deleted`,
