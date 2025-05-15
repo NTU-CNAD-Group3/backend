@@ -40,17 +40,23 @@ export const createServerController = async (req, res) => {
 
 // put
 export const moveServerController = async (req, res) => {
-  const { id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition } = req.body;
+  const { id, newFabId, newRoomId, newRackId, service, unit, frontPosition, backPosition } = req.body;
   if (
     id == null ||
     newFabId == null ||
     newRoomId == null ||
     newRackId == null ||
     service == null ||
+    unit == null ||
     frontPosition == null ||
     backPosition == null
   ) {
-    const error = new Error('id, newFabId, newRoomId, newRackId, service, frontPosition, backPosition are required');
+    const error = new Error('id, newFabId, newRoomId, newRackId, service, unit, frontPosition, backPosition are required');
+    error.status = 400;
+    throw error;
+  }
+  if (backPosition - frontPosition !== unit - 1) {
+    const error = new Error('The unit does not match the position size');
     error.status = 400;
     throw error;
   }

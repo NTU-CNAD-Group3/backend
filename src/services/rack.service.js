@@ -49,7 +49,7 @@ class RackServices {
         ]);
       });
       await Promise.all(rackPromises);
-      await client.query('UPDATE rooms SET hasRack = hasRack + $1 WHERE id=$2;', [rackNum, roomId]);
+      await client.query('UPDATE rooms SET hasRack = hasRack + $1,updatedAt = NOW() WHERE id=$2;', [rackNum, roomId]);
 
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
@@ -167,7 +167,7 @@ class RackServices {
       result.maxEmpty = maxgap;
 
       // update maxEmpty
-      await pool.query('UPDATE racks SET maxEmpty = $1 WHERE id = $2', [rackId, result.maxEmpty]);
+      await pool.query('UPDATE racks SET maxEmpty = $1,updatedAt = NOW() WHERE id = $2', [rackId, result.maxEmpty]);
     }
 
     logger.info({ message: `msg=Rack ${rackId} get` });
@@ -182,7 +182,7 @@ class RackServices {
       error.status = 404;
       throw error;
     }
-    await pool.query('UPDATE racks SET name = $1 WHERE id = $2', [name, rackId]);
+    await pool.query('UPDATE racks SET name = $1,updatedAt = NOW() WHERE id = $2', [name, rackId]);
     logger.info({
       message: `msg=Rack ${rackId} updated`,
     });
@@ -194,15 +194,22 @@ class RackServices {
       await client.query('BEGIN');
       const lockKey = 3000000000000000 + roomId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
-      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1)', [id]);
+      const inTable = await client.query('SELECT EXISTS(SELECT 1 FROM racks WHERE id = $1 and roomId = $2)', [id, roomId]);
       if (!inTable.rows[0].exists) {
         logger.error({ message: `msg=Rack not found` });
         const error = new Error('Rack not found');
         error.status = 404;
         throw error;
       }
+      const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM servers WHERE rackId = $1)', [id]);
+      if (!isEmpty.rows[0].exists) {
+        logger.error({ message: 'msg=Rack is not Empty' });
+        const error = new Error('Rack is not Empty');
+        error.status = 400;
+        throw error;
+      }
       await client.query('DELETE FROM racks WHERE id = $1', [id]);
-      await client.query('UPDATE rooms SET hasRack = hasRack - 1 WHERE id=$1;', [roomId]);
+      await client.query('UPDATE rooms SET hasRack = hasRack - 1,updatedAt = NOW() WHERE id=$1;', [roomId]);
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({

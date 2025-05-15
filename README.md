@@ -1,6 +1,10 @@
 # Gateway Service
 
-# 還在更改中(5/14)，從service開始改，其他還沒動，也都還沒測，先丟上來給看
+# FAB 測試完畢
+# room 測試完畢
+# rack 測試完畢
+# ip 測試完畢
+# server 測試中
 
 ## Description
 

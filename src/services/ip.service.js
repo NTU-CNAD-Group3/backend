@@ -32,7 +32,7 @@ class IpServices {
     const ipPoolId = poolData.id;
 
     usedIps.push(ip);
-    await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2 `, [usedIps, ipPoolId]);
+    await client.query(`UPDATE ipPools SET usedIps = $1,updatedAt = NOW() WHERE id = $2 `, [usedIps, ipPoolId]);
     logger.info({
       message: `msg=Assigned IP ${ip} to service=${service}`,
     });
@@ -100,7 +100,7 @@ class IpServices {
     } else {
       throw new Error(`IP ${ip} not found in ip pool`);
     }
-    await client.query(`UPDATE ipPools SET usedIps = $1 WHERE id = $2`, [usedIps, poolData.id]);
+    await client.query(`UPDATE ipPools SET usedIps = $1,updatedAt = NOW() WHERE id = $2`, [usedIps, poolData.id]);
     logger.info({
       message: `msg=Released IP ${ip} from server=${serverData.name}`,
     });

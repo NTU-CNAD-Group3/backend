@@ -102,7 +102,7 @@ class ServerServices {
         throw error;
       }
       await pool.query(
-        'UPDATE servers SET  service = $1, fabId = $2, roomId = $3, rackId = $4,  frontPosition = $5, backPosition = $6 WHERE id = $8',
+        'UPDATE servers SET  service = $1, fabId = $2, roomId = $3, rackId = $4,  frontPosition = $5, backPosition = $6, updatedAt = NOW() WHERE id = $7',
         [service, newFabId, newRoomId, newRackId, frontPosition, backPosition, id],
       );
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
@@ -123,7 +123,7 @@ class ServerServices {
 
   async repair(id) {
     try {
-      await pool.query('UPDATE servers SET healthy = True WHERE id = $1', [id]);
+      await pool.query('UPDATE servers SET healthy = True,updatedAt = NOW() WHERE id = $1', [id]);
       logger.info({
         message: `msg=Server ${id} repaird`,
       });
@@ -137,7 +137,7 @@ class ServerServices {
 
   async broken(id) {
     try {
-      await pool.query('UPDATE servers SET healthy = False WHERE id = $1', [id]);
+      await pool.query('UPDATE servers SET healthy = False,updatedAt = NOW() WHERE id = $1', [id]);
       logger.info({
         message: `msg=Server ${id} broken`,
       });
@@ -151,11 +151,11 @@ class ServerServices {
 
   async getAllServerBroken() {
     try {
-      const result = await pool.query('SELECTS * FROM servers WHERE healthy = False');
+      const result = await pool.query('SELECT * FROM servers WHERE healthy = False');
       logger.info({
         message: `msg=getAllServerBroken`,
       });
-      return result.rows[0];
+      return result.rows;
     } catch (error) {
       logger.error({
         message: `msg=getAllServerBroken error error=${error}`,
@@ -166,7 +166,7 @@ class ServerServices {
 
   async updateServerName(id, newName) {
     try {
-      await pool.query('UPDATE servers SET name = $1 WHERE id = $2', [newName, id]);
+      await pool.query('UPDATE servers SET name = $1,updatedAt = NOW() WHERE id = $2', [newName, id]);
       logger.info({
         message: `msg=Server ${id} updateServerName`,
       });
@@ -185,7 +185,7 @@ class ServerServices {
       logger.info({
         message: `msg=Get server by id=${id}`,
       });
-      return result.rows[0];
+      return result.rows;
     } catch (error) {
       logger.error({
         message: `msg=Get server by id=${id} error error=${error}`,

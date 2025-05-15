@@ -28,7 +28,7 @@ class RoomServices {
         ]);
       });
       await Promise.all(roomPromises);
-      await client.query('UPDATE fabs SET roomNum = roomNum + $1 WHERE name=$2;', [roomNum, fabName]);
+      await client.query('UPDATE fabs SET roomNum = roomNum + $1,updatedAt = NOW() WHERE name=$2;', [roomNum, fabName]);
 
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
@@ -134,7 +134,7 @@ class RoomServices {
       error.status = 404;
       throw error;
     }
-    await pool.query('UPDATE rooms SET rackNum = $1, name = $2 WHERE id = $3', [rackNum, name, roomId]);
+    await pool.query('UPDATE rooms SET rackNum = $1, name = $2,updatedAt = NOW() WHERE id = $3', [rackNum, name, roomId]);
     logger.info({
       message: `msg=Room ${roomId} updated`,
     });
@@ -161,8 +161,16 @@ class RoomServices {
         error.status = 404;
         throw error;
       }
+
+      const isEmpty = await pool.query('SELECT EXISTS(SELECT 1 FROM racks WHERE roomId = $1)', [roomId]);
+      if (!isEmpty.rows[0].exists) {
+        logger.error({ message: 'msg=Room is not Empty' });
+        const error = new Error('Room is not Empty');
+        error.status = 400;
+        throw error;
+      }
       await client.query('DELETE FROM rooms WHERE id = $1', [roomId]);
-      await client.query('UPDATE fabs SET roomNum = roomNum - 1 WHERE name=$1;', [fabName]);
+      await client.query('UPDATE fabs SET roomNum = roomNum - 1,updatedAt = NOW() WHERE name=$1;', [fabName]);
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
       logger.info({
