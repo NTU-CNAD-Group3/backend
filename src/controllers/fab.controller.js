@@ -2,7 +2,6 @@ import fabService from '#src/services/fab.service.js';
 // getFabDetails, getAllRooms,
 const { getAllFabs, getFab, createFab, updateFab, deleteFab } = fabService;
 
-
 export const getAllFabsController = async (req, res) => {
   const fabs = await getAllFabs();
   res.status(200).json({ data: fabs, message: 'OK' });

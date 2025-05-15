@@ -14,7 +14,7 @@ class IpServices {
       poolId = result.rows[i].id;
       lockKey = 5000000000000000 + poolId;
       await client.query(`SELECT pg_advisory_lock($1)`, [lockKey]);
-      poolData = (await client.query(`SELECT id,cidr FROM ipPools WHERE id = $1`, [poolId])).rows[0];
+      poolData = (await client.query(`SELECT * FROM ipPools WHERE id = $1`, [poolId])).rows[0];
       ip = await ipUtils.getAvailableIp(poolData.cidr, poolData.usedips);
       if (ip) {
         break;
@@ -24,7 +24,7 @@ class IpServices {
 
     if (!ip) {
       const error = new Error(`No available IP found for service=${service}`);
-      error.status=503;
+      error.status = 503;
       throw error;
     }
 
@@ -50,7 +50,7 @@ class IpServices {
 
       if (overlappingPool) {
         const error = new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
-        error.status=503;
+        error.status = 503;
         throw error;
       }
 
@@ -167,7 +167,7 @@ class IpServices {
         message: `msg=Get IpPools for service=${service}`,
       });
 
-      return result;
+      return result.rows;
     } catch (error) {
       logger.error({
         message: `IpPool get service=${service} error error=${error.message}`,

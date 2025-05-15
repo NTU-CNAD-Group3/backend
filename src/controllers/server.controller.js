@@ -29,6 +29,11 @@ export const createServerController = async (req, res) => {
     error.status = 400;
     throw error;
   }
+  if (backPosition - frontPosition !== unit - 1) {
+    const error = new Error('The unit does not match the position size');
+    error.status = 400;
+    throw error;
+  }
   const createdServer = await createServer(name, service, unit, fabId, roomId, rackId, frontPosition, backPosition);
   res.status(201).json({ data: createdServer, message: 'Created' });
 };
@@ -90,7 +95,7 @@ export const getAllServerBrokenController = async (req, res) => {
 };
 
 export const getServerController = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.query;
   if (id == null) {
     const error = new Error('Server ID are required');
     error.status = 400;
@@ -106,9 +111,9 @@ export const getAllServersController = async (req, res) => {
 };
 
 export const getServerByTypeController = async (req, res) => {
-  const { keyword, type, page, size } = req.body;
+  const { keyword, type, page, size } = req.query;
   if (keyword == null || type == null || page == null || size == null) {
-    const error = new Error('Server name are required');
+    const error = new Error('keyword, type, page, size are required');
     error.status = 400;
     throw error;
   }
@@ -118,12 +123,12 @@ export const getServerByTypeController = async (req, res) => {
 
 // delete
 export const deleteServerController = async (req, res) => {
-  const { id } = req.body;
-  if (id == null) {
-    const error = new Error('Server ID are required');
+  const { rackId, id } = req.body;
+  if (rackId == null || id == null) {
+    const error = new Error('rackId, id are required');
     error.status = 400;
     throw error;
   }
-  const deletedServer = await deleteServer(id);
+  const deletedServer = await deleteServer(rackId, id);
   res.status(200).json({ data: deletedServer, message: 'Deleted' });
 };

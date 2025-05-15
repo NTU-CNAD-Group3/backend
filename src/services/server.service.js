@@ -103,7 +103,7 @@ class ServerServices {
       }
       await pool.query(
         'UPDATE servers SET  service = $1, fabId = $2, roomId = $3, rackId = $4,  frontPosition = $5, backPosition = $6 WHERE id = $8',
-        [newService, newFabId, newRoomId, newRackId, frontPosition, backPosition, id],
+        [service, newFabId, newRoomId, newRackId, frontPosition, backPosition, id],
       );
       await client.query(`SELECT pg_advisory_unlock($1)`, [lockKey]);
       await client.query('COMMIT');
@@ -196,9 +196,7 @@ class ServerServices {
   // 前端若需要一個列表顯示
   async getAllServers() {
     try {
-      const result = await pool.query(
-        'SELECT id, service, fabId, roomId, rackId, ip, healthy, createAt, updateAt FROM servers ORDER BY id',
-      );
+      const result = await pool.query('SELECT * FROM servers ORDER BY id');
       logger.info({
         message: `msg=Get all servers`,
       });
@@ -215,7 +213,7 @@ class ServerServices {
   async getServerByType(keyword, type, page, size) {
     try {
       const result = await pool.query(
-        `SELECT id, service, fabId, roomId, rackId, ip, healthy, createAt, updateAt FROM servers 
+        `SELECT * FROM servers 
         WHERE ${type} % $1
         ORDER BY similarity(${type}, $1) DESC
         LIMIT $2
