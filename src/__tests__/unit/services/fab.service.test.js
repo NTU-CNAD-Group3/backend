@@ -5,14 +5,14 @@ const mockLoggerInfo = jest.fn();
 const mockLoggerError = jest.fn();
 
 await jest.unstable_mockModule('#src/models/db.js', () => ({
-  pool: { query: mockQuery }
+  pool: { query: mockQuery },
 }));
 
 await jest.unstable_mockModule('#src/utils/logger.js', () => ({
   default: {
     info: mockLoggerInfo,
-    error: mockLoggerError
-  }
+    error: mockLoggerError,
+  },
 }));
 
 const fabServiceModule = await import('#src/services/fab.service.js');
@@ -22,9 +22,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// -----------------------------------------------------------------------------
-// getFab
-// -----------------------------------------------------------------------------
 describe('getFab', () => {
   test('should return nested fab structure if found', async () => {
     mockQuery
@@ -32,12 +29,19 @@ describe('getFab', () => {
       .mockResolvedValueOnce({
         rows: [
           {
-            dc_id: 1, dc_name: 'fabA', createdat: '2024-01-01', updatedat: '2024-01-02',
-            room_id: 2, room_name: 'room1',
-            rack_id: 3, rack_name: 'rack1', service: 'web',
-            server_id: 4, server_name: 'server1'
-          }
-        ]
+            dc_id: 1,
+            dc_name: 'fabA',
+            createdat: '2024-01-01',
+            updatedat: '2024-01-02',
+            room_id: 2,
+            room_name: 'room1',
+            rack_id: 3,
+            rack_name: 'rack1',
+            service: 'web',
+            server_id: 4,
+            server_name: 'server1',
+          },
+        ],
       });
 
     const result = await fabService.getFab('fabA');
@@ -55,20 +59,25 @@ describe('getFab', () => {
   });
 });
 
-// -----------------------------------------------------------------------------
-// getAllFabs
-// -----------------------------------------------------------------------------
 describe('getAllFabs', () => {
   test('should return all fabs nested', async () => {
     mockQuery.mockResolvedValueOnce({
       rows: [
         {
-          dc_id: 1, dc_name: 'fabA',
-          room_id: 2, room_name: 'room1',
-          rack_id: 3, rack_name: 'rack1', service: 'db',
-          server_id: 4, server_name: 's1', unit: 2, frontposition: 10, backposition: 20
-        }
-      ]
+          dc_id: 1,
+          dc_name: 'fabA',
+          room_id: 2,
+          room_name: 'room1',
+          rack_id: 3,
+          rack_name: 'rack1',
+          service: 'db',
+          server_id: 4,
+          server_name: 's1',
+          unit: 2,
+          frontposition: 10,
+          backposition: 20,
+        },
+      ],
     });
 
     const result = await fabService.getAllFabs();
@@ -85,14 +94,9 @@ describe('getAllFabs', () => {
   });
 });
 
-// -----------------------------------------------------------------------------
-// createFab
-// -----------------------------------------------------------------------------
 describe('createFab', () => {
   test('should insert new fab and return id', async () => {
-    mockQuery
-      .mockResolvedValueOnce({ rows: [{ exists: false }] }) // uniqueness check
-      .mockResolvedValueOnce({ rows: [{ id: 1 }] });        // insert
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: false }] }).mockResolvedValueOnce({ rows: [{ id: 1 }] });
 
     const result = await fabService.createFab('fabX');
     expect(result).toEqual({ id: 1 });
@@ -108,13 +112,10 @@ describe('createFab', () => {
   });
 });
 
-// -----------------------------------------------------------------------------
-// updateFab
-// -----------------------------------------------------------------------------
 describe('updateFab', () => {
   test('should update fab name if valid', async () => {
     mockQuery
-      .mockResolvedValueOnce({ rows: [{ exists: true }] })  // id exists
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // id exists
       .mockResolvedValueOnce({ rows: [{ exists: false }] }); // name not taken
 
     await fabService.updateFab(1, 'newFab');
@@ -130,23 +131,18 @@ describe('updateFab', () => {
   });
 
   test('should throw error if name already exists', async () => {
-    mockQuery
-      .mockResolvedValueOnce({ rows: [{ exists: true }] })
-      .mockResolvedValueOnce({ rows: [{ exists: true }] });
+    mockQuery.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({ rows: [{ exists: true }] });
 
     await expect(fabService.updateFab(1, 'duplicate')).rejects.toThrow('The name must be unique');
     expect(mockLoggerError).toHaveBeenCalled();
   });
 });
 
-// -----------------------------------------------------------------------------
-// deleteFab
-// -----------------------------------------------------------------------------
 describe('deleteFab', () => {
   test('should delete fab if no rooms exist', async () => {
     mockQuery
-      .mockResolvedValueOnce({ rows: [{ exists: true }] })  // fab exists
-      .mockResolvedValueOnce({ rows: [{ id: 5 }] })         // get id
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // fab exists
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // get id
       .mockResolvedValueOnce({ rows: [{ exists: false }] }); // is empty
 
     await fabService.deleteFab('fabX');

@@ -92,7 +92,7 @@ class FabServices {
         dc.id AS dc_id, dc.name AS dc_name,
         r.id AS room_id, r.name AS room_name,
         rk.id AS rack_id, rk.name AS rack_name, rk.service,
-        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition , s.backPosition
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition , s.backPosition, s.ip
       FROM fabs dc
       LEFT JOIN rooms r ON r.fabId = dc.id
       LEFT JOIN racks rk ON rk.roomId = r.id
@@ -160,6 +160,7 @@ class FabServices {
               unit: row.unit,
               position_front: row.frontposition,
               position_back: row.backposition,
+              ip: row.ip,
             };
           }
         }

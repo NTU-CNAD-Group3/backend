@@ -86,7 +86,9 @@ describe('ServerServices 全面測試', () => {
         .mockResolvedValueOnce({ rows: [{ exists: true }] })
         .mockResolvedValueOnce({ rows: [{ service: 'other-svc' }] });
 
-      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow('Server with the service can not insert to this rack');
+      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow(
+        'Server with the service can not insert to this rack',
+      );
       expect(mockClient.release).toHaveBeenCalled();
     });
 
@@ -103,7 +105,9 @@ describe('ServerServices 全面測試', () => {
         .mockResolvedValueOnce({ rows: [{ service: 'svc' }] })
         .mockResolvedValueOnce({ rows: [{ id: 1 }] });
 
-      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow('Position already occupied in this rack.');
+      await expect(serverService.createServer('server1', 'svc', 1, 1, 1, 1, 1, 2)).rejects.toThrow(
+        'Position already occupied in this rack.',
+      );
       expect(mockClient.release).toHaveBeenCalled();
     });
   });
@@ -151,8 +155,7 @@ describe('ServerServices 全面測試', () => {
         .mockResolvedValueOnce({ rows: [{ service: 'svc' }] })
         .mockResolvedValueOnce({ rows: [] });
       pool.query.mockResolvedValueOnce();
-      mockClient.query.mockResolvedValueOnce()
-        .mockResolvedValueOnce();
+      mockClient.query.mockResolvedValueOnce().mockResolvedValueOnce();
 
       await serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2);
 
@@ -181,7 +184,9 @@ describe('ServerServices 全面測試', () => {
         .mockResolvedValueOnce()
         .mockResolvedValueOnce({ rows: [{ service: 'other' }] });
 
-      await expect(serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2)).rejects.toThrow('Server with the service can not insert to this rack');
+      await expect(serverService.moveServer(100, 2, 3, 1, 'svc', 1, 2)).rejects.toThrow(
+        'Server with the service can not insert to this rack',
+      );
       expect(mockClient.release).toHaveBeenCalled();
     });
   });
@@ -237,9 +242,11 @@ describe('ServerServices 全面測試', () => {
     it('更新名稱失敗', async () => {
       pool.query.mockRejectedValue(new Error('fail'));
       await expect(serverService.updateServerName(1, 'newName')).rejects.toThrow('fail');
-      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('updateServerName error'),
-      }));
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('updateServerName error'),
+        }),
+      );
     });
   });
 
@@ -248,18 +255,22 @@ describe('ServerServices 全面測試', () => {
       pool.query.mockResolvedValue({ rows: [{ id: 1, name: 'server1' }] });
       const result = await serverService.getServer(1);
       expect(result).toEqual([{ id: 1, name: 'server1' }]);
-      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('Get server by id=1'),
-      }));
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Get server by id=1'),
+        }),
+      );
     });
 
     it('取得 server 發生錯誤', async () => {
       pool.query.mockRejectedValue(new Error('fail'));
       const result = await serverService.getServer(1);
       expect(result).toBeUndefined();
-      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('Get server by id=1 error'),
-      }));
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Get server by id=1 error'),
+        }),
+      );
     });
   });
 
@@ -268,17 +279,21 @@ describe('ServerServices 全面測試', () => {
       pool.query.mockResolvedValue({ rows: [{ id: 1 }, { id: 2 }] });
       const result = await serverService.getAllServers();
       expect(result).toHaveLength(2);
-      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('Get all servers'),
-      }));
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Get all servers'),
+        }),
+      );
     });
 
     it('取得所有 server 發生錯誤', async () => {
       pool.query.mockRejectedValue(new Error('fail'));
       await expect(serverService.getAllServers()).rejects.toThrow('fail');
-      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('Get all servers error'),
-      }));
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Get all servers error'),
+        }),
+      );
     });
   });
 
@@ -287,17 +302,21 @@ describe('ServerServices 全面測試', () => {
       pool.query.mockResolvedValue({ rows: [{ id: 1, name: 'example' }] });
       const result = await serverService.getServerByType('exa', 'name', 0, 10);
       expect(result).toEqual([{ id: 1, name: 'example' }]);
-      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('getServerByType'),
-      }));
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('getServerByType'),
+        }),
+      );
     });
 
     it('模糊搜尋失敗', async () => {
       pool.query.mockRejectedValue(new Error('fail'));
       await expect(serverService.getServerByType('exa', 'name', 0, 10)).rejects.toThrow('fail');
-      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-        message: expect.stringContaining('getServerByType error'),
-      }));
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('getServerByType error'),
+        }),
+      );
     });
   });
 });

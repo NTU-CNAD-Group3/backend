@@ -25,8 +25,6 @@ jest.unstable_mockModule('#src/utils/ip.util.js', () => ({
 
 const { default: ipService } = await import('#src/services/ip.service.js');
 const ipUtils = (await import('#src/utils/ip.util.js')).default;
-const logger = (await import('#src/utils/logger.js')).default;
-
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -59,7 +57,7 @@ describe('IpServices', () => {
 
       ipUtils.getAvailableIp.mockResolvedValue(null);
 
-      const err = await ipService.assign(client, 'test').catch(e => e);
+      const err = await ipService.assign(client, 'test').catch((e) => e);
       expect(err.status).toBe(503);
     });
   });
@@ -84,9 +82,9 @@ describe('IpServices', () => {
       const mockClient = { query: jest.fn(), release: jest.fn() };
       mockConnect.mockResolvedValueOnce(mockClient);
       mockClient.query
-      .mockResolvedValueOnce() // BEGIN
-      .mockResolvedValueOnce({ rows: [{ cidr: '192.168.1.0/24' }] }) // SELECT cidr FROM ipPools
-      .mockResolvedValueOnce(); // ROLLBACK (會因錯誤執行)
+        .mockResolvedValueOnce() // BEGIN
+        .mockResolvedValueOnce({ rows: [{ cidr: '192.168.1.0/24' }] }) // SELECT cidr FROM ipPools
+        .mockResolvedValueOnce(); // ROLLBACK (會因錯誤執行)
       ipUtils.isOverlap.mockReturnValue(true);
 
       await expect(ipService.createIpPool('svc', '192.168.1.0/24')).rejects.toThrow(/overlaps/);
