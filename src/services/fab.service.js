@@ -90,8 +90,8 @@ class FabServices {
     const query = ` 
       SELECT 
         dc.id AS dc_id, dc.name AS dc_name,
-        r.id AS room_id, r.name AS room_name,
-        rk.id AS rack_id, rk.name AS rack_name, rk.service,
+        r.id AS room_id, r.name AS room_name, r.height AS room_height,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.height AS rack_height,
         s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition , s.backPosition, s.ip
       FROM fabs dc
       LEFT JOIN rooms r ON r.fabId = dc.id
@@ -133,6 +133,7 @@ class FabServices {
           dc.roomNum++;
           dc.rooms[roomKey] = {
             name: row.room_name,
+            height: row.room_height,
             rackNum: 0,
             racks: {},
           };
@@ -146,6 +147,7 @@ class FabServices {
             room.racks[rackKey] = {
               name: row.rack_name,
               service: row.service,
+              height: row.rack_height,
               serverNum: 0,
               servers: {},
             };
