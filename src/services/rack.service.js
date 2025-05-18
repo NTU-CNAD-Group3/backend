@@ -188,7 +188,7 @@ class RackServices {
     });
   }
 
-  async deleteRack(roomId, id) {
+  async deleteRack(id, roomId) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
