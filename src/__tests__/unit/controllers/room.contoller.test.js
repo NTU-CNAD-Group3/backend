@@ -14,12 +14,9 @@ await jest.unstable_mockModule('#src/services/room.service.js', () => ({
   },
 }));
 
-const {
-  getRoomController,
-  createRoomsController,
-  updateRoomController,
-  deleteRoomController,
-} = await import('#src/controllers/room.controller.js');
+const { getRoomController, createRoomsController, updateRoomController, deleteRoomController } = await import(
+  '#src/controllers/room.controller.js'
+);
 
 let req, res;
 beforeEach(() => {
@@ -76,9 +73,7 @@ describe('createRoomsController', () => {
   test('should throw 400 if required fields missing', async () => {
     req.body = { fabName: null, roomNum: 1, roomArray: null };
 
-    await expect(createRoomsController(req, res)).rejects.toThrow(
-      'fabName, roomNum and roomArray are required',
-    );
+    await expect(createRoomsController(req, res)).rejects.toThrow('fabName, roomNum and roomArray are required');
     expect(mockCreateRooms).not.toHaveBeenCalled();
   });
 });
@@ -104,9 +99,7 @@ describe('updateRoomController', () => {
   test('should throw 400 if required fields missing', async () => {
     req.body = { id: null, name: null, rackNum: null };
 
-    await expect(updateRoomController(req, res)).rejects.toThrow(
-      'Room id, name and rackNum are required',
-    );
+    await expect(updateRoomController(req, res)).rejects.toThrow('Room id, name and rackNum are required');
     expect(mockUpdateRoom).not.toHaveBeenCalled();
   });
 });
@@ -131,9 +124,7 @@ describe('deleteRoomController', () => {
   test('should throw 400 if fabName or roomId missing', async () => {
     req.body = { fabName: null, roomId: null };
 
-    await expect(deleteRoomController(req, res)).rejects.toThrow(
-      'fabName and roomId are required',
-    );
+    await expect(deleteRoomController(req, res)).rejects.toThrow('fabName and roomId are required');
     expect(mockDeleteRoom).not.toHaveBeenCalled();
   });
 });

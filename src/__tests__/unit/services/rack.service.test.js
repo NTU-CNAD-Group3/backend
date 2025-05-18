@@ -52,15 +52,11 @@ describe('RackServices', () => {
         .mockResolvedValueOnce() // pg_advisory_unlock
         .mockResolvedValueOnce(); // COMMIT
 
-      await expect(
-        rackService.createRacks(fabName, roomId, rackNum, rackArray)
-      ).resolves.not.toThrow();
+      await expect(rackService.createRacks(fabName, roomId, rackNum, rackArray)).resolves.not.toThrow();
 
       expect(pool.connect).toHaveBeenCalled();
       expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('racks created') })
-      );
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('racks created') }));
       expect(mockClient.release).toHaveBeenCalled();
     });
 
@@ -75,13 +71,12 @@ describe('RackServices', () => {
         .mockResolvedValueOnce() // pg_advisory_lock
         .mockResolvedValueOnce({ rows: [{ exists: false }] }); // fabs not exists
 
-      await expect(
-        rackService.createRacks(fabName, roomId, rackNum, rackArray)
-      ).rejects.toMatchObject({ message: 'DC not found', status: 404 });
+      await expect(rackService.createRacks(fabName, roomId, rackNum, rackArray)).rejects.toMatchObject({
+        message: 'DC not found',
+        status: 404,
+      });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Fab not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Fab not found') }));
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
     });
@@ -99,13 +94,12 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ id: 123 }] }) // fabs id
         .mockResolvedValueOnce({ rows: [{ exists: false }] }); // rooms not exists
 
-      await expect(
-        rackService.createRacks(fabName, roomId, rackNum, rackArray)
-      ).rejects.toMatchObject({ message: 'Room not found', status: 404 });
+      await expect(rackService.createRacks(fabName, roomId, rackNum, rackArray)).rejects.toMatchObject({
+        message: 'Room not found',
+        status: 404,
+      });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Room not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Room not found') }));
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
     });
@@ -124,9 +118,10 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // rooms exists
         .mockResolvedValueOnce({ rows: [{ racknum: 10, hasrack: 5, height: 45 }] }); // constraint
 
-      await expect(
-        rackService.createRacks(fabName, roomId, rackNum, rackArray)
-      ).rejects.toMatchObject({ message: 'Rack number out of room limitation', status: 400 });
+      await expect(rackService.createRacks(fabName, roomId, rackNum, rackArray)).rejects.toMatchObject({
+        message: 'Rack number out of room limitation',
+        status: 400,
+      });
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
@@ -146,9 +141,10 @@ describe('RackServices', () => {
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // rooms exists
         .mockResolvedValueOnce({ rows: [{ racknum: 10, hasrack: 5, height: 45 }] }); // constraint
 
-      await expect(
-        rackService.createRacks(fabName, roomId, rackNum, rackArray)
-      ).rejects.toMatchObject({ message: 'Rack height out of room limitation', status: 400 });
+      await expect(rackService.createRacks(fabName, roomId, rackNum, rackArray)).rejects.toMatchObject({
+        message: 'Rack height out of room limitation',
+        status: 400,
+      });
 
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
@@ -213,9 +209,7 @@ describe('RackServices', () => {
       expect(result.name).toBe('rackName');
       expect(result.serverNum).toBe(1);
       expect(result.servers).toHaveProperty('server1');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Rack') })
-      );
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack') }));
     });
 
     it('should throw if fab not found', async () => {
@@ -226,9 +220,7 @@ describe('RackServices', () => {
         status: 404,
       });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Fab not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Fab not found') }));
     });
 
     it('should throw if rack not found', async () => {
@@ -242,9 +234,7 @@ describe('RackServices', () => {
         status: 404,
       });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Rack not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
     });
   });
 
@@ -259,9 +249,7 @@ describe('RackServices', () => {
 
       await expect(rackService.updateRack(rackId, name)).resolves.not.toThrow();
 
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('updated') })
-      );
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('updated') }));
     });
 
     it('should throw if rack not found', async () => {
@@ -272,9 +260,7 @@ describe('RackServices', () => {
         status: 404,
       });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Rack not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
     });
   });
 
@@ -295,9 +281,7 @@ describe('RackServices', () => {
 
       await expect(rackService.deleteRack(roomId, rackId)).resolves.not.toThrow();
 
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('deleted') })
-      );
+      expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('deleted') }));
       expect(mockClient.release).toHaveBeenCalled();
     });
 
@@ -315,9 +299,7 @@ describe('RackServices', () => {
         status: 404,
       });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Rack not found') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack not found') }));
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
     });
@@ -337,9 +319,7 @@ describe('RackServices', () => {
         status: 400,
       });
 
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Rack is not Empty') })
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Rack is not Empty') }));
       expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(mockClient.release).toHaveBeenCalled();
     });

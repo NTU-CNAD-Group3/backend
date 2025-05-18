@@ -16,13 +16,9 @@ await jest.unstable_mockModule('#src/services/ip.service.js', () => ({
   },
 }));
 
-const {
-  createIpPoolController,
-  getAllIpController,
-  getUsedIpController,
-  getIpPoolController,
-  getAllIpPoolsController,
-} = await import('#src/controllers/ip.controller.js');
+const { createIpPoolController, getAllIpController, getUsedIpController, getIpPoolController, getAllIpPoolsController } = await import(
+  '#src/controllers/ip.controller.js'
+);
 
 let req, res;
 beforeEach(() => {
@@ -148,4 +144,3 @@ describe('getAllIpPoolsController', () => {
     expect(res.json).toHaveBeenCalledWith({ data: result, message: 'OK' });
   });
 });
-

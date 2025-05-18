@@ -26,7 +26,8 @@ describe('RoomServices', () => {
   describe('createRooms', () => {
     test('should create rooms successfully', async () => {
       const mockClient = {
-        query: jest.fn()
+        query: jest
+          .fn()
           .mockResolvedValueOnce() // BEGIN
           .mockResolvedValueOnce() // advisory lock
           .mockResolvedValue() // insert rooms
@@ -54,18 +55,21 @@ describe('RoomServices', () => {
       expect(pool.connect).toHaveBeenCalledTimes(1);
       expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
       expect(mockClient.query).toHaveBeenCalledWith('SELECT pg_advisory_lock($1)', [expect.any(Number)]);
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)',
-        ['Room 1', 0, 123, 10, 42]
-      );
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)',
-        ['Room 2', 0, 123, 5, 30]
-      );
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'UPDATE fabs SET roomNum = roomNum + $1,updatedAt = NOW() WHERE name=$2;',
-        [2, 'Fab1']
-      );
+      expect(mockClient.query).toHaveBeenCalledWith('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
+        'Room 1',
+        0,
+        123,
+        10,
+        42,
+      ]);
+      expect(mockClient.query).toHaveBeenCalledWith('INSERT INTO rooms(name, hasRack, fabId, rackNum, height) VALUES($1, $2, $3, $4, $5)', [
+        'Room 2',
+        0,
+        123,
+        5,
+        30,
+      ]);
+      expect(mockClient.query).toHaveBeenCalledWith('UPDATE fabs SET roomNum = roomNum + $1,updatedAt = NOW() WHERE name=$2;', [2, 'Fab1']);
       expect(mockClient.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [expect.any(Number)]);
       expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
       expect(mockClient.release).toHaveBeenCalled();
@@ -82,7 +86,8 @@ describe('RoomServices', () => {
 
     test('should rollback and throw error if insert rooms fail', async () => {
       const mockClient = {
-        query: jest.fn()
+        query: jest
+          .fn()
           .mockResolvedValueOnce() // BEGIN
           .mockResolvedValueOnce() // advisory lock
           .mockRejectedValueOnce(new Error('Insert failed')), // insert rooms fail
@@ -168,7 +173,11 @@ describe('updateRoom', () => {
     await expect(roomService.updateRoom(1, 'New Room Name', 5)).resolves.toBeUndefined();
 
     expect(pool.query).toHaveBeenNthCalledWith(1, 'SELECT EXISTS(SELECT 1 FROM rooms WHERE id = $1)', [1]);
-    expect(pool.query).toHaveBeenNthCalledWith(2, 'UPDATE rooms SET rackNum = $1, name = $2,updatedAt = NOW() WHERE id = $3', [5, 'New Room Name', 1]);
+    expect(pool.query).toHaveBeenNthCalledWith(2, 'UPDATE rooms SET rackNum = $1, name = $2,updatedAt = NOW() WHERE id = $3', [
+      5,
+      'New Room Name',
+      1,
+    ]);
     expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room 1 updated' }));
   });
 
@@ -184,7 +193,8 @@ describe('updateRoom', () => {
 describe('deleteRoom', () => {
   test('should delete room successfully', async () => {
     const mockClient = {
-      query: jest.fn()
+      query: jest
+        .fn()
         .mockResolvedValueOnce() // BEGIN
         .mockResolvedValueOnce() // advisory lock
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
@@ -229,7 +239,8 @@ describe('deleteRoom', () => {
 
   test('should throw error if room not found', async () => {
     const mockClient = {
-      query: jest.fn()
+      query: jest
+        .fn()
         .mockResolvedValueOnce() // BEGIN
         .mockResolvedValueOnce() // advisory lock
         .mockResolvedValueOnce({ rows: [{ exists: false }] }), // room not exists
@@ -250,7 +261,8 @@ describe('deleteRoom', () => {
 
   test('should throw error if room is not empty', async () => {
     const mockClient = {
-      query: jest.fn()
+      query: jest
+        .fn()
         .mockResolvedValueOnce() // BEGIN
         .mockResolvedValueOnce() // advisory lock
         .mockResolvedValueOnce({ rows: [{ exists: true }] }) // room exists
