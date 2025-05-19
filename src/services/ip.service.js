@@ -46,8 +46,14 @@ class IpServices {
       await client.query('BEGIN');
 
       const existingPools = await client.query(`SELECT cidr FROM ipPools`);
-      const overlappingPool = existingPools.rows.find((row) => ipUtils.isOverlap(row.cidr, cidrBlock));
-
+      let overlappingPool = null;
+      for (const row of existingPools.rows) {
+        const isOverlap = await ipUtils.isOverlap(row.cidr, cidrBlock);
+        if (isOverlap) {
+          overlappingPool = row;
+          break;
+        }
+      }
       if (overlappingPool) {
         const error = new Error(`CIDR block ${cidrBlock} overlaps with existing pool ${overlappingPool.cidr}`);
         error.status = 503;
@@ -184,7 +190,7 @@ class IpServices {
         message: `msg=Get all IpPools`,
       });
 
-      return result;
+      return result.rows;
     } catch (error) {
       logger.error({
         message: `All IpPools get error error=${error.message}`,

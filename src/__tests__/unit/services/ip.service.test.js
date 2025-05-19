@@ -136,7 +136,7 @@ describe('IpServices', () => {
     it('returns all IP pools', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [{ id: 1 }, { id: 2 }] });
       const result = await ipService.getAllIpPools();
-      expect(result.rows.length).toBe(2);
+      expect(result[0].id).toBe(1);
     });
   });
 });
