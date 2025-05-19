@@ -23,7 +23,8 @@ class IpUtils {
     }
     const cidr = new IPCIDR(cidrStr);
     const allIps = cidr.toArray();
-    return allIps;
+    const validIps = allIps.slice(1, allIps.length - 1);
+    return validIps;
   }
 
   async isOverlap(cidr1, cidr2) {
