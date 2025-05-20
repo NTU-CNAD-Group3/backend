@@ -90,7 +90,7 @@ class FabServices {
     const query = ` 
       SELECT 
         dc.id AS dc_id, dc.name AS dc_name,
-        r.id AS room_id, r.name AS room_name, r.height AS room_height,
+        r.id AS room_id, r.name AS room_name, r.height AS room_height, r.rackNum,
         rk.id AS rack_id, rk.name AS rack_name, rk.service, rk.height AS rack_height,
         s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition , s.backPosition, s.ip
       FROM fabs dc
@@ -134,6 +134,7 @@ class FabServices {
           dc.rooms[roomKey] = {
             name: row.room_name,
             height: row.room_height,
+            maxRack: row.rackNum,
             rackNum: 0,
             racks: {},
           };
