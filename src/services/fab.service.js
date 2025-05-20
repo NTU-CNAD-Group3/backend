@@ -134,7 +134,7 @@ class FabServices {
           dc.rooms[roomKey] = {
             name: row.room_name,
             height: row.room_height,
-            maxRack: row.rackNum,
+            maxRack: row.racknum,
             rackNum: 0,
             racks: {},
           };
