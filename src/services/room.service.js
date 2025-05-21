@@ -66,7 +66,7 @@ class RoomServices {
       SELECT 
         r.id AS room_id, r.name AS room_name, r.rackNum, r.hasRack,r.createdAt,r.updatedAt,r.height,
         rk.id AS rack_id, rk.name AS rack_name, rk.service,rk.height AS rackHeight,
-        s.id AS server_id, s.name AS server_name
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition, s.backPosition,s.healthy
       FROM fabs dc
       LEFT JOIN rooms r ON r.fabId = dc.id
       LEFT JOIN racks rk ON rk.roomId = r.id
@@ -120,6 +120,10 @@ class RoomServices {
           rack.servers[serverKey] = {
             id: row.server_id,
             name: row.server_name,
+            unit: row.unit,
+            frontPosition: row.frontposition,
+            backPosition: row.backposition,
+            healthy: row.healthy,
           };
         }
       }
