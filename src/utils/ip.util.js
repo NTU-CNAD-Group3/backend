@@ -1,5 +1,5 @@
 import IPCIDR from 'ip-cidr';
-import {Netmask} from 'netmask';
+import { Netmask } from 'netmask';
 
 class IpUtils {
   // 在網段抓取可用IP

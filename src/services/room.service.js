@@ -64,9 +64,9 @@ class RoomServices {
     }
     const query = ` 
       SELECT 
-        r.id AS room_id, r.name AS room_name, r.rackNum, r.hasRack,
-        rk.id AS rack_id, rk.name AS rack_name, rk.service,
-        s.id AS server_id, s.name AS server_name
+        r.id AS room_id, r.name AS room_name, r.rackNum, r.hasRack,r.createdAt,r.updatedAt,r.height,
+        rk.id AS rack_id, rk.name AS rack_name, rk.service,rk.height AS rackHeight,
+        s.id AS server_id, s.name AS server_name, s.unit, s.frontPosition, s.backPosition,s.healthy
       FROM fabs dc
       LEFT JOIN rooms r ON r.fabId = dc.id
       LEFT JOIN racks rk ON rk.roomId = r.id
@@ -78,8 +78,9 @@ class RoomServices {
     const result = {
       id: 0,
       name: '',
-      rackNum: 0,
+      maxRack: 0,
       hasRack: 0,
+      height: 0,
       createdAt: null,
       updatedAt: null,
       racks: {},
@@ -89,8 +90,9 @@ class RoomServices {
       if (!result.name) {
         result.id = row.room_id;
         result.name = row.room_name;
-        result.rackNum = row.racknum;
+        result.maxRack = row.racknum;
         result.hasRack = row.hasrack;
+        result.height = row.height;
         result.createdAt = row.createdat;
         result.updatedAt = row.updatedat;
       }
@@ -103,6 +105,7 @@ class RoomServices {
             id: row.rack_id,
             name: row.rack_name,
             service: row.service,
+            height: row.rackheight,
             serverNum: 0,
             servers: {},
           };
@@ -117,6 +120,10 @@ class RoomServices {
           rack.servers[serverKey] = {
             id: row.server_id,
             name: row.server_name,
+            unit: row.unit,
+            frontPosition: row.frontposition,
+            backPosition: row.backposition,
+            healthy: row.healthy,
           };
         }
       }

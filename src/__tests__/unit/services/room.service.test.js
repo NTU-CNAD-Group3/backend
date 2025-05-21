@@ -138,7 +138,7 @@ describe('RoomServices', () => {
 
       expect(result.id).toBe(1);
       expect(result.name).toBe('Room 1');
-      expect(result.rackNum).toBe(10);
+      expect(result.maxRack).toBe(10);
       expect(result.hasRack).toBe(2);
       expect(result.racks.rack100.servers.server200.name).toBe('Server 1');
       expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ message: 'msg=Room 1 get' }));
