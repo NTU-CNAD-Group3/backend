@@ -93,8 +93,8 @@ class ServerServices {
         error.status = 400;
         throw error;
       }
-      const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3))`;
-      const overlapResult = await client.query(overlapQuery, [newRackId, frontPosition, backPosition]);
+      const overlapQuery = `SELECT * FROM servers WHERE rackId = $1 AND (($2 BETWEEN frontPosition AND backPosition) OR ($3 BETWEEN frontPosition AND backPosition) OR (frontPosition BETWEEN $2 AND $3) OR (backPosition BETWEEN $2 AND $3)) AND id !=$4`;
+      const overlapResult = await client.query(overlapQuery, [newRackId, frontPosition, backPosition, id]);
 
       if (overlapResult.rows.length > 0) {
         const error = new Error('Position already occupied in this rack.');
